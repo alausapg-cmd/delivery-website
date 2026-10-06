@@ -1,0 +1,819 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Deliveries</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+body{margin:0}
+/* Layout: an operations desk. Sticky top bar with tracking lookup, tabs, then a 4-lane board where parcels move left to right. */
+:root{
+  --bg:#f3f5f1; --surface:#ffffff; --sunken:#e8ece5; --line:#d5dbd0;
+  --ink:#16201a; --muted:#5b6a60; --accent:#c2410c; --accent-ink:#ffffff; --accent-soft:#fbe5d8;
+  --ok:#15803d; --ok-soft:#dcf2e3; --warn:#a16207; --warn-soft:#fbefc9; --bad:#b91c1c; --bad-soft:#fde0e0; --info:#1d4ed8; --info-soft:#dde7fd;
+  --f-display:"Familjen Grotesk","Helvetica Neue",Arial,sans-serif;
+  --f-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  --r:10px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#111713; --surface:#18201b; --sunken:#0d120f; --line:#2b362f;
+  --ink:#e6ece7; --muted:#97a69c; --accent:#f97316; --accent-ink:#1a0d04; --accent-soft:#3a2214;
+  --ok:#4ade80; --ok-soft:#173222; --warn:#facc15; --warn-soft:#352d10; --bad:#f87171; --bad-soft:#3a1a1a; --info:#93b4ff; --info-soft:#1b2747;
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#111713; --surface:#18201b; --sunken:#0d120f; --line:#2b362f;
+  --ink:#e6ece7; --muted:#97a69c; --accent:#f97316; --accent-ink:#1a0d04; --accent-soft:#3a2214;
+  --ok:#4ade80; --ok-soft:#173222; --warn:#facc15; --warn-soft:#352d10; --bad:#f87171; --bad-soft:#3a1a1a; --info:#93b4ff; --info-soft:#1b2747;
+  color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font:15px/1.5 var(--f-body)}
+h1,h2,h3{font-family:var(--f-display);margin:0;text-wrap:balance;letter-spacing:-.01em}
+button,input,select,textarea{font:inherit;color:inherit}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums;letter-spacing:.02em}
+.num{font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)}
+.eyebrow{font-size:11.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600}
+
+header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--surface);border-bottom:1px solid var(--line)}
+.wrap{max-width:1320px;margin:0 auto;padding-inline:16px}
+.topbar{display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding-block:12px}
+.brand{display:flex;align-items:center;gap:10px;min-width:0}
+.brand .mark{width:34px;height:34px;border-radius:8px;background:var(--accent);display:grid;place-items:center;flex:none}
+.brand .mark svg{width:20px;height:20px}
+.brand h1{font-size:20px}
+.brand .co{font-size:12.5px;color:var(--muted);cursor:pointer;border-bottom:1px dashed var(--line)}
+.lookup{margin-left:auto;display:flex;gap:6px;flex:1 1 260px;max-width:380px}
+.lookup input{flex:1;min-width:0}
+nav.tabs{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none}
+nav.tabs a{padding:10px 14px;text-decoration:none;color:var(--muted);font-weight:600;border-bottom:2.5px solid transparent;white-space:nowrap}
+nav.tabs a[aria-current="page"]{color:var(--ink);border-color:var(--accent)}
+nav.tabs a .ct{font-size:11.5px;background:var(--sunken);border-radius:99px;padding:1px 7px;margin-left:6px}
+
+main{padding-block:20px 60px}
+.banner{font-size:13px;padding:8px 12px;border-radius:8px;background:var(--warn-soft);color:var(--ink);margin-bottom:14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.banner button{margin-left:auto}
+
+input,select,textarea{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:9px 11px;width:100%}
+textarea{resize:vertical;min-height:62px}
+input:focus,select:focus,textarea:focus,button:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+label{display:grid;gap:4px;font-size:13px;font-weight:500;min-width:0}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:8px 13px;font-weight:600;cursor:pointer;white-space:nowrap}
+.btn:hover{background:var(--sunken)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.primary:hover{filter:brightness(1.07)}
+.btn.sm{padding:5px 10px;font-size:13px}
+.btn.ghost{border-color:transparent;background:transparent}
+.btn.danger{color:var(--bad)}
+.btn[disabled]{opacity:.5;cursor:not-allowed}
+
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:20px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px}
+.kpi b{display:block;font-family:var(--f-display);font-size:28px;line-height:1.1;font-variant-numeric:tabular-nums}
+.kpi span{font-size:13px;color:var(--muted)}
+
+.board{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;align-items:start}
+@media (max-width:1100px){.board{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:640px){.board{grid-template-columns:minmax(0,1fr)}}
+.lane{background:var(--sunken);border-radius:var(--r);padding:10px;display:grid;gap:10px;min-width:0}
+.lane>header{display:flex;align-items:baseline;gap:8px;padding:2px 4px}
+.lane>header h2{font-size:15.5px}
+.lane>header .n{margin-left:auto;font-size:13px;color:var(--muted)}
+.lane .empty{font-size:13px;color:var(--muted);padding:14px 6px;text-align:center;border:1px dashed var(--line);border-radius:8px}
+
+.card{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px 11px;display:grid;gap:7px;min-width:0;border-left:4px solid var(--stripe,var(--line))}
+.card .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;min-width:0}
+.card .code{font-weight:600;cursor:pointer;text-decoration:underline;text-decoration-color:var(--line);text-underline-offset:3px;background:none;border:0;padding:0}
+.card .to{font-weight:600;overflow-wrap:anywhere}
+.card .meta{font-size:13px;color:var(--muted);overflow-wrap:anywhere}
+.card .acts{display:flex;gap:6px;flex-wrap:wrap}
+.card .acts select{flex:1 1 100%;min-width:0;padding:5px 8px;font-size:13px}
+.chip{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;padding:2px 8px;border-radius:99px;background:var(--sunken);color:var(--muted);white-space:nowrap}
+.chip.ok{background:var(--ok-soft);color:var(--ok)} .chip.warn{background:var(--warn-soft);color:var(--warn)} .chip.bad{background:var(--bad-soft);color:var(--bad)} .chip.info{background:var(--info-soft);color:var(--info)} .chip.acc{background:var(--accent-soft);color:var(--accent)}
+.chip.ex{background:transparent;border:1px dashed var(--line)}
+.dot{width:7px;height:7px;border-radius:50%;background:currentColor}
+
+.grid2{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:900px){.grid2{grid-template-columns:minmax(0,1fr)}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px;display:grid;gap:14px;min-width:0}
+.panel h2{font-size:19px}
+.fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.fields .full{grid-column:1/-1}
+@media (max-width:560px){.fields{grid-template-columns:minmax(0,1fr)}}
+fieldset{border:0;padding:0;margin:0;display:grid;gap:10px;min-width:0}
+legend{font-family:var(--f-display);font-weight:600;font-size:15px;margin-bottom:8px}
+.seg{display:inline-flex;background:var(--sunken);border-radius:9px;padding:3px;gap:3px;flex-wrap:wrap}
+.seg button{border:0;background:transparent;border-radius:7px;padding:7px 12px;font-weight:600;cursor:pointer;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgb(0 0 0 / .08)}
+.hint{font-size:12.5px;color:var(--muted)}
+.formacts{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
+
+.riders{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:14px}
+.rider{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px;display:grid;gap:10px;min-width:0}
+.rider .hd{display:flex;gap:10px;align-items:center}
+.avatar{width:40px;height:40px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;font-family:var(--f-display);font-weight:700;flex:none}
+.rider h3{font-size:16.5px}
+.loc{background:var(--sunken);border-radius:8px;padding:9px 11px;font-size:13.5px}
+.loc b{display:block;font-size:14.5px}
+.stats{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:13px;color:var(--muted)}
+.stats b{color:var(--ink);font-variant-numeric:tabular-nums}
+.inline{display:flex;gap:6px}
+.inline input{min-width:0}
+.list{display:grid;gap:4px;font-size:13px}
+.list div{display:flex;gap:8px;justify-content:space-between}
+
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:var(--r);background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:13.5px;min-width:760px}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:11.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600;background:var(--sunken)}
+tr:last-child td{border-bottom:0}
+tbody tr{cursor:pointer} tbody tr:hover{background:var(--sunken)}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.toolbar input{flex:1 1 220px;width:auto}
+.toolbar select{width:auto}
+
+.timeline{list-style:none;margin:0;padding:0;display:grid;gap:0}
+.timeline li{display:grid;grid-template-columns:18px 1fr;gap:10px;padding-bottom:14px;position:relative}
+.timeline li::before{content:"";width:11px;height:11px;border-radius:50%;background:var(--accent);margin-top:5px;margin-left:3px}
+.timeline li:not(:last-child)::after{content:"";position:absolute;left:8px;top:18px;bottom:0;width:1.5px;background:var(--line)}
+.timeline small{color:var(--muted)}
+
+dialog{border:0;padding:0;border-radius:14px;background:var(--surface);color:var(--ink);width:min(560px,calc(100vw - 32px));max-height:calc(100vh - 48px);box-shadow:0 20px 60px rgb(0 0 0 / .3)}
+dialog::backdrop{background:rgb(10 14 12 / .5)}
+.dlg{padding:20px;display:grid;gap:14px}
+.dlg .hd{display:flex;align-items:center;gap:10px}
+.dlg .hd .btn{margin-left:auto}
+.kv{display:grid;grid-template-columns:120px minmax(0,1fr);gap:6px 12px;font-size:14px}
+.kv dt{color:var(--muted)} .kv dd{margin:0;overflow-wrap:anywhere}
+.msg{background:var(--sunken);border-radius:8px;padding:10px 12px;font-size:13.5px;white-space:pre-wrap}
+
+/* Customer page */
+body.cust header.top, body.cust #modeBanner{display:none}
+body.locked header.top, body.locked [data-view]{display:none!important}
+.cwrap{max-width:760px;margin:0 auto;display:grid;gap:18px}
+.chero{display:flex;align-items:center;gap:12px;padding-block:6px}
+.chero .mark{width:44px;height:44px;border-radius:10px;background:var(--accent);display:grid;place-items:center;flex:none;color:var(--accent-ink)}
+.chero .mark svg{width:24px;height:24px}
+.chero h1{font-size:clamp(22px,4.5vw,30px);line-height:1.15}
+.chero p{margin:2px 0 0;color:var(--muted)}
+.ctabs{display:grid;grid-template-columns:1fr 1fr;background:var(--sunken);border-radius:11px;padding:4px;gap:4px}
+.ctabs button{border:0;background:transparent;border-radius:8px;padding:11px;font-weight:600;font-size:15.5px;cursor:pointer;color:var(--muted)}
+.ctabs button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 3px rgb(0 0 0 / .1)}
+.steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin:4px 0}
+.steps div{display:grid;gap:6px;font-size:12.5px;color:var(--muted);text-align:center}
+.steps i{height:6px;border-radius:99px;background:var(--line)}
+.steps .on{color:var(--ink);font-weight:600} .steps .on i{background:var(--accent)}
+.steps.bad .on i{background:var(--bad)}
+.bigcode{font-family:var(--f-mono);font-size:clamp(26px,7vw,36px);letter-spacing:.06em;font-weight:500}
+.okbox{border:1.5px solid var(--ok);background:var(--ok-soft);border-radius:var(--r);padding:16px;display:grid;gap:10px}
+.staffonly{display:inline-flex}
+body.cust .staffonly{display:none}
+.fee-edit{display:flex;gap:6px;flex-wrap:wrap}
+.fee-edit input{width:140px}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:9px;font-weight:500;z-index:50;max-width:calc(100vw - 32px)}
+@media (prefers-reduced-motion:no-preference){.card{transition:transform .12s} .card:hover{transform:translateY(-1px)}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <div class="topbar">
+      <div class="brand">
+        <div class="mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--accent-ink)"><path d="M3 7l9-4 9 4-9 4-9-4z"/><path d="M3 7v10l9 4 9-4V7"/><path d="M12 11v10"/></svg></div>
+        <div style="min-width:0">
+          <h1>Dispatch Desk</h1>
+          <span class="co" id="coName" title="Change company name">Your delivery company</span>
+        </div>
+      </div>
+      <button class="btn sm" id="custLinkBtn" type="button" title="Copy the link you give to customers">Customer page link</button>
+      <form class="lookup" id="lookupForm">
+        <input id="lookupInput" placeholder="Track a code, e.g. DD-7K3Q" aria-label="Tracking code" autocomplete="off">
+        <button class="btn primary" type="submit">Track</button>
+      </form>
+    </div>
+    <nav class="tabs" aria-label="Sections">
+      <a href="#board" data-tab="board">Send out <span class="ct" id="ctBoard">0</span></a>
+      <a href="#intake" data-tab="intake">Receive order / package</a>
+      <a href="#riders" data-tab="riders">Riders <span class="ct" id="ctRiders">0</span></a>
+      <a href="#orders" data-tab="orders">All orders</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="banner" id="modeBanner" hidden></div>
+
+  <!-- STAFF SIGN-IN -->
+  <section id="pinView" hidden>
+    <form class="panel" id="pinForm" style="max-width:380px;margin:40px auto" autocomplete="off">
+      <h2>Staff sign-in</h2>
+      <p class="hint" style="margin:0">Enter the staff PIN to open the dispatch board.</p>
+      <input id="pinInput" type="password" inputmode="numeric" aria-label="Staff PIN" placeholder="PIN">
+      <div class="formacts"><button class="btn primary" type="submit">Open dispatch board</button></div>
+      <p class="hint" style="margin:0"><a href="SITEURL" id="toCustomer" target="_top">Go to the customer page</a></p>
+    </form>
+  </section>
+
+  <!-- BOARD -->
+  <section data-view="board">
+    <div class="kpis" id="kpis"></div>
+    <div class="board" id="board"></div>
+  </section>
+
+  <!-- INTAKE -->
+  <section data-view="intake" hidden>
+    <div class="grid2">
+      <form class="panel" id="orderForm" autocomplete="off">
+        <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+          <h2>Receive an order</h2>
+          <div class="seg" role="group" aria-label="How the package arrives" id="arriveSeg">
+            <button type="button" data-v="pickup" aria-pressed="true">We pick it up</button>
+            <button type="button" data-v="dropoff" aria-pressed="false">It's at our office now</button>
+          </div>
+        </div>
+        <p class="hint" id="arriveHint" style="margin:0">The order goes to New bookings until a rider collects it.</p>
+        <fieldset>
+          <legend>Sender</legend>
+          <div class="fields">
+            <label>Name<input id="sName" required placeholder="e.g. Amaka's Closet"></label>
+            <label>Phone<input id="sPhone" required inputmode="tel" placeholder="0803 000 0000"></label>
+            <label class="full" id="sAddrWrap">Pickup address<input id="sAddr" placeholder="Street, area, landmark"></label>
+          </div>
+        </fieldset>
+        <fieldset>
+          <legend>Receiver</legend>
+          <div class="fields">
+            <label>Name<input id="rName" required></label>
+            <label>Phone<input id="rPhone" required inputmode="tel"></label>
+            <label class="full">Delivery address<input id="rAddr" required placeholder="Street, area, landmark"></label>
+            <label>Area / zone<input id="rArea" required list="areas" placeholder="e.g. Lekki"></label>
+            <label>Deliver by<select id="due"><option>Today</option><option>Tomorrow</option><option>Within 48 hours</option></select></label>
+          </div>
+        </fieldset>
+        <fieldset>
+          <legend>Package and payment</legend>
+          <div class="fields">
+            <label class="full">What's inside<input id="item" required placeholder="e.g. 2 pairs of shoes in a nylon bag"></label>
+            <label>Size<select id="size"><option>Small (envelope / nylon)</option><option>Medium (shoe box)</option><option>Large (carton)</option></select></label>
+            <label>Delivery fee (₦)<input id="fee" type="number" min="0" step="100" required placeholder="2500"></label>
+            <label>Fee paid by<select id="feeBy"><option value="sender">Sender (already paid)</option><option value="receiver">Receiver, on delivery</option></select></label>
+            <label>Collect for seller (₦)<input id="cod" type="number" min="0" step="100" placeholder="0 if none"></label>
+            <label class="full">Notes for rider<textarea id="notes" placeholder="Call before arriving, fragile, gate code…"></textarea></label>
+          </div>
+        </fieldset>
+        <div class="formacts">
+          <button class="btn" type="reset">Clear</button>
+          <button class="btn primary" type="submit">Save order</button>
+        </div>
+      </form>
+
+      <div style="display:grid;gap:18px;min-width:0">
+        <form class="panel" id="checkinForm" autocomplete="off">
+          <h2>Receive a package</h2>
+          <p class="hint" style="margin:0">A rider just brought in a pickup, or a customer dropped one off. Enter its code to log it at the office.</p>
+          <div class="inline">
+            <input id="checkinCode" placeholder="DD-7K3Q" aria-label="Code of package received" class="mono">
+            <button class="btn primary" type="submit">Mark received</button>
+          </div>
+          <div id="awaiting" class="list"></div>
+        </form>
+        <div class="panel">
+          <h2>After you save</h2>
+          <p class="hint" style="margin:0">Each order gets a tracking code. Open it from the board to copy a ready-made WhatsApp message for the sender or receiver.</p>
+          <div id="lastSaved" class="msg" hidden></div>
+          <button class="btn" id="copyLast" hidden>Copy message</button>
+        </div>
+      </div>
+    </div>
+    <datalist id="areas"></datalist>
+  </section>
+
+  <!-- RIDERS -->
+  <section data-view="riders" hidden>
+    <div class="kpis" id="riderKpis"></div>
+    <div class="riders" id="riderGrid"></div>
+    <form class="panel" id="riderForm" style="margin-top:18px" autocomplete="off">
+      <h2>Add a rider</h2>
+      <div class="fields">
+        <label>Full name<input id="rdName" required></label>
+        <label>Phone<input id="rdPhone" required inputmode="tel"></label>
+        <label>Bike plate number<input id="rdPlate" placeholder="e.g. LSR 214 QE"></label>
+        <label>Usual zone<input id="rdZone" list="areas" placeholder="e.g. Ikeja"></label>
+      </div>
+      <div class="formacts"><button class="btn primary" type="submit">Add rider</button></div>
+    </form>
+  </section>
+
+  <!-- CUSTOMER PAGE -->
+  <section data-view="customer" hidden>
+    <div class="cwrap">
+      <div class="chero">
+        <div class="mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7l9-4 9 4-9 4-9-4z"/><path d="M3 7v10l9 4 9-4V7"/><path d="M12 11v10"/></svg></div>
+        <div style="min-width:0"><h1 id="custCo">Send a package with us</h1><p>Book a delivery in two minutes, then track it with your code.</p></div>
+      </div>
+      <div class="ctabs" role="group" aria-label="What do you want to do">
+        <button type="button" data-cmode="book" aria-pressed="true">Book a delivery</button>
+        <button type="button" data-cmode="track" aria-pressed="false">Track my package</button>
+      </div>
+
+      <form class="panel" id="custForm" autocomplete="on" data-cpanel="book">
+        <fieldset>
+          <legend>Your details</legend>
+          <div class="fields">
+            <label>Your name<input id="cName" required autocomplete="name"></label>
+            <label>Your phone (WhatsApp)<input id="cPhone" required inputmode="tel" autocomplete="tel" placeholder="0803 000 0000"></label>
+          </div>
+        </fieldset>
+        <fieldset>
+          <legend>Pickup</legend>
+          <div class="seg" role="group" aria-label="Pickup or drop-off" id="cArriveSeg">
+            <button type="button" data-v="pickup" aria-pressed="true">Pick it up from me</button>
+            <button type="button" data-v="dropoff" aria-pressed="false">I'll bring it to your office</button>
+          </div>
+          <label id="cAddrWrap">Pickup address<input id="cAddr" placeholder="Street, area, landmark" autocomplete="street-address"></label>
+        </fieldset>
+        <fieldset>
+          <legend>Who is receiving it</legend>
+          <div class="fields">
+            <label>Receiver's name<input id="crName" required></label>
+            <label>Receiver's phone<input id="crPhone" required inputmode="tel"></label>
+            <label class="full">Delivery address<input id="crAddr" required placeholder="Street, area, landmark"></label>
+            <label>Area<input id="crArea" required placeholder="e.g. Lekki, Ikeja, Yaba"></label>
+            <label>When should it arrive?<select id="cDue"><option>Today</option><option>Tomorrow</option><option>Within 48 hours</option></select></label>
+          </div>
+        </fieldset>
+        <fieldset>
+          <legend>The package</legend>
+          <div class="fields">
+            <label class="full">What are you sending?<input id="cItem" required placeholder="e.g. 2 pairs of shoes in a nylon bag"></label>
+            <label>Size<select id="cSize"><option>Small (envelope / nylon)</option><option>Medium (shoe box)</option><option>Large (carton)</option></select></label>
+            <label>Who pays the delivery fee?<select id="cFeeBy"><option value="sender">I will pay</option><option value="receiver">Receiver pays on delivery</option></select></label>
+            <label class="full">Should the rider collect money for you? (₦)<input id="cCod" type="number" min="0" step="100" placeholder="Leave empty if no"></label>
+            <label class="full">Anything the rider should know?<textarea id="cNotes" placeholder="Fragile, call before arriving, best time to pick up…"></textarea></label>
+          </div>
+        </fieldset>
+        <p class="hint" style="margin:0">We'll confirm the delivery fee with you on WhatsApp before pickup.</p>
+        <div class="formacts"><button class="btn primary" type="submit" id="cSubmit">Book delivery</button></div>
+      </form>
+
+      <div class="okbox" id="custDone" hidden data-cpanel="book">
+        <span class="eyebrow">Booking received</span>
+        <div class="bigcode" id="custCode"></div>
+        <p style="margin:0">Keep this tracking code. We'll message you on WhatsApp to confirm the fee and pickup time.</p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn primary" type="button" id="custCopy">Copy code</button><button class="btn" type="button" id="custTrackNow">Track it</button><button class="btn" type="button" id="custAgain">Book another</button></div>
+      </div>
+
+      <form class="panel" id="custTrackForm" data-cpanel="track" hidden autocomplete="off">
+        <h2>Track my package</h2>
+        <div class="inline">
+          <input id="ctCode" class="mono" placeholder="Tracking code, e.g. DD-7K3Q" aria-label="Tracking code">
+          <button class="btn primary" type="submit">Track</button>
+        </div>
+        <div id="ctResult"></div>
+      </form>
+      <p class="hint" id="custNote" style="text-align:center"></p>
+    </div>
+  </section>
+
+  <!-- ORDERS -->
+  <section data-view="orders" hidden>
+    <div class="toolbar">
+      <input id="q" placeholder="Search code, name, phone or area" aria-label="Search orders">
+      <select id="fStatus" aria-label="Filter by status"><option value="">All statuses</option></select>
+      <select id="fRider" aria-label="Filter by rider"><option value="">All riders</option></select>
+    </div>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Code</th><th>Status</th><th>Receiver</th><th>Area</th><th>Item</th><th class="num">Fee ₦</th><th>Rider</th><th>Updated</th></tr></thead>
+      <tbody id="orderRows"></tbody>
+    </table></div>
+    <div class="formacts" style="margin-top:14px;justify-content:flex-start" id="exampleTools"></div>
+  </section>
+</main>
+
+<dialog id="dlg"><div class="dlg" id="dlgBody"></div></dialog>
+<div class="toast" id="toast" hidden></div>
+
+<script src="config.js"></script>
+<script>
+  (function(){ var q=new URLSearchParams(location.search);
+    window.BOOT={mode:q.get("staff")?"staff":"customer", track:(q.get("track")||"").replace(/[^A-Za-z0-9-]/g,"").slice(0,12), siteUrl:location.origin+location.pathname}; })();
+</script>
+<script>
+(() => {
+const STATUSES = {
+  booked:   {label:"Awaiting pickup",  cls:"warn", lane:"new"},
+  pickup:   {label:"Rider picking up", cls:"info", lane:"new"},
+  at_hub:   {label:"At our office",    cls:"acc",  lane:"hub"},
+  out:      {label:"Out for delivery", cls:"info", lane:"out"},
+  delivered:{label:"Delivered",        cls:"ok",   lane:"done"},
+  failed:   {label:"Delivery failed",  cls:"bad",  lane:"done"},
+  returned: {label:"Returned to sender", cls:"", lane:"done"},
+};
+const LANES = [
+  {id:"new",  title:"New bookings", hint:"Orders waiting for a rider to collect."},
+  {id:"hub",  title:"At our office", hint:"Packages ready to send out."},
+  {id:"out",  title:"Out for delivery", hint:"With a rider on the road."},
+  {id:"done", title:"Finished today", hint:"Delivered, failed or returned today."},
+];
+const STRIPE = {warn:"var(--warn)",info:"var(--info)",acc:"var(--accent)",ok:"var(--ok)",bad:"var(--bad)","":"var(--line)"};
+const naira = n => "₦" + (Number(n)||0).toLocaleString("en-NG");
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const now = () => new Date().toISOString();
+const isToday = iso => iso && new Date(iso).toDateString() === new Date().toDateString();
+const ago = iso => { if(!iso) return "never"; const m = Math.round((Date.now()-new Date(iso))/60000);
+  if(m<1) return "just now"; if(m<60) return m+" min ago"; const h=Math.round(m/60); if(h<24) return h+" h ago";
+  return new Date(iso).toLocaleDateString("en-NG",{day:"numeric",month:"short"}); };
+const clock = iso => new Date(iso).toLocaleString("en-NG",{day:"numeric",month:"short",hour:"numeric",minute:"2-digit"});
+const newCode = () => { const a="ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; let s=""; for(let i=0;i<4;i++) s+=a[Math.floor(Math.random()*a.length)]; return "DD-"+s; };
+const initials = n => String(n||"?").split(/\s+/).filter(Boolean).slice(0,2).map(w=>w[0].toUpperCase()).join("");
+
+function toast(msg){ const t=$("#toast"); t.textContent=msg; t.hidden=false; clearTimeout(toast.t); toast.t=setTimeout(()=>t.hidden=true,2600); }
+
+/* ---------- Store: the website's Google Sheet, through the Apps Script server ---------- */
+const BOOT = window.BOOT || {mode:"customer", track:"", siteUrl:""};
+const SITE = BOOT.siteUrl;
+const api = async (fn, ...args) => {
+  const url = window.DISPATCH_API;
+  if(!url || url.indexOf("script.google.com")<0) throw new Error("The website isn't connected to its Google Sheet yet. Add the Apps Script address in config.js.");
+  let res; try{ res = await fetch(url, {method:"POST", headers:{"Content-Type":"text/plain;charset=utf-8"}, body:JSON.stringify({fn, args})}); }
+  catch(e){ throw new Error("Couldn't reach the server. Check your internet connection and try again."); }
+  const data = await res.json().catch(()=>null);
+  if(!data) throw new Error("The server sent an unexpected reply. Try again.");
+  if(!data.ok) throw new Error(data.error);
+  return data.result;
+};
+const errText = e => String(e && e.message || e || "Something went wrong.").replace(/^Exception:\s*/,"");
+let PIN = ""; try{ PIN = sessionStorage.getItem("dd-pin") || ""; }catch(e){}
+const Store = {
+  mode:"loading", data:{orders:{},riders:{},settings:{}}, lastJson:"",
+  async init(){
+    if(BOOT.mode!=="staff"){
+      this.mode="shared";
+      try{ const info = await api("publicInfo"); this.data.settings = info.company ? {company:{name:info.company}} : {}; }catch(e){}
+      render(); return;
+    }
+    if(!PIN){ lock(true); return; }
+    try{ await this.refresh(true); lock(false); this.mode="shared"; render(); setInterval(()=>this.refresh(), 20000); }
+    catch(e){ PIN=""; try{ sessionStorage.removeItem("dd-pin"); }catch(_){} lock(true); toast(errText(e)); }
+  },
+  async refresh(force){
+    const d = await api("staffGetAll", PIN); const j = JSON.stringify(d);
+    if(!force && j===this.lastJson) return;
+    const busy = $("#dlg").open || (document.activeElement && /^(SELECT|INPUT|TEXTAREA)$/.test(document.activeElement.tagName));
+    this.lastJson=j; this.data = {orders:d.orders||{}, riders:d.riders||{}, settings:d.settings||{}};
+    if(!busy || force) render();
+  },
+  async set(col,id,obj){
+    try{ await api("staffSet", PIN, col, id, obj); }catch(e){ toast(errText(e) || "Couldn't save. Check your connection and try again."); throw e; }
+    this.data[col][id]=obj; this.lastJson=""; render();
+  },
+  async patch(col,id,part){ const cur=this.data[col][id]; if(!cur) return; return this.set(col,id,Object.assign({},cur,part)); },
+  async remove(col,id){
+    try{ await api("staffDelete", PIN, col, id); }catch(e){ toast("Couldn't delete that record."); return; }
+    delete this.data[col][id]; this.lastJson=""; render();
+  },
+};
+function lock(on){ document.body.classList.toggle("locked", on); $("#pinView").hidden=!on; if(on) setTimeout(()=>$("#pinInput").focus(),50); }
+$("#pinForm").addEventListener("submit", async e=>{
+  e.preventDefault(); const v=$("#pinInput").value.trim(); if(!v) return;
+  try{ await api("staffLogin", v); PIN=v; try{ sessionStorage.setItem("dd-pin", v); }catch(_){} $("#pinInput").value=""; Store.init(); }
+  catch(err){ toast(errText(err)); }
+});
+const orders = () => Object.entries(Store.data.orders).map(([id,o])=>({...o,id}));
+const riders = () => Object.entries(Store.data.riders).map(([id,r])=>({...r,id})).sort((a,b)=>(a.name||"").localeCompare(b.name||""));
+const riderById = id => id && Store.data.riders[id] ? {...Store.data.riders[id], id} : null;
+const company = () => (Store.data.settings.company && Store.data.settings.company.name) || "";
+
+async function moveOrder(o, status, extra={}, note=""){
+  const history = [...(o.history||[]), {status, at:now(), note}];
+  await Store.patch("orders", o.id, {...extra, status, updatedAt:now(), history});
+}
+function riderLoad(rid){ return orders().filter(o => o.riderId===rid && (o.status==="out"||o.status==="pickup")); }
+function riderState(r){ if(r.offDuty) return {label:"Off duty",cls:""}; return riderLoad(r.id).length ? {label:"On a run",cls:"info"} : {label:"Available",cls:"ok"}; }
+
+/* ---------- Tabs ---------- */
+function currentTab(){ if(BOOT.mode!=="staff") return "customer"; const h=(location.hash||"#board").slice(1); return ["board","intake","riders","orders"].includes(h)?h:"board"; }
+function showTab(){ const t=currentTab(); document.body.classList.toggle("cust", t==="customer");
+  document.querySelectorAll("[data-view]").forEach(s=>s.hidden = s.dataset.view!==t);
+  document.querySelectorAll("nav.tabs a").forEach(a=>{ if(a.dataset.tab===t) a.setAttribute("aria-current","page"); else a.removeAttribute("aria-current"); });
+}
+window.addEventListener("hashchange", showTab);
+
+/* ---------- Render ---------- */
+function render(){
+  const all = orders();
+  const banner=$("#modeBanner");
+  if(Store.mode==="loading"){ banner.hidden=false; banner.textContent="Connecting to your shared records…"; }
+  else banner.hidden=true;
+  $("#coName").textContent = company() || "Set your company name";
+  document.title = (company() ? company()+" · " : "") + (BOOT.mode==="staff" ? "Dispatch Desk" : "Book and track a delivery");
+
+  const areas=[...new Set([...all.map(o=>o.receiver?.area), ...riders().map(r=>r.zone)].filter(Boolean))];
+  $("#areas").innerHTML = areas.map(a=>`<option value="${esc(a)}">`).join("");
+
+  renderBoard(all); renderIntake(all); renderRiders(all); renderOrders(all);
+  $("#custCo").textContent = company() ? `Send a package with ${company()}` : "Send a package with us";
+  $("#custNote").textContent = "";
+  
+  $("#ctBoard").textContent = all.filter(o=>["booked","pickup","at_hub","out"].includes(o.status)).length;
+  $("#ctRiders").textContent = riders().length;
+}
+
+function cardHTML(o){
+  const st=STATUSES[o.status]||{label:o.status,cls:""}; const r=riderById(o.riderId);
+  const due = o.fee==null ? "Fee to confirm"+(o.collect>0?` · collect ${naira(o.collect)}`:"") : o.collect>0 ? `Collect ${naira(o.collect + (o.feeBy==="receiver"?o.fee:0))}` : (o.feeBy==="receiver" ? `Collect fee ${naira(o.fee)}` : "Prepaid");
+  let acts="";
+  const riderOpts = sel => `<option value="">Choose rider…</option>` + riders().filter(x=>!x.offDuty).map(x=>`<option value="${x.id}" ${x.id===sel?"selected":""}>${esc(x.name)} · ${riderLoad(x.id).length} on hand</option>`).join("");
+  if(o.status==="booked") acts=`<select data-rider="${o.id}" aria-label="Rider for pickup">${riderOpts(o.riderId)}</select><button class="btn sm" data-act="sendPickup" data-id="${o.id}">Send for pickup</button><button class="btn sm" data-act="receive" data-id="${o.id}">Received</button>`;
+  else if(o.status==="pickup") acts=`<button class="btn sm primary" data-act="receive" data-id="${o.id}">Received at office</button>`;
+  else if(o.status==="at_hub") acts=`<select data-rider="${o.id}" aria-label="Rider for delivery">${riderOpts(o.riderId)}</select><button class="btn sm primary" data-act="dispatch" data-id="${o.id}">Send out</button>`;
+  else if(o.status==="out") acts=`<button class="btn sm primary" data-act="delivered" data-id="${o.id}">Delivered</button><button class="btn sm" data-act="failed" data-id="${o.id}">Failed</button>`;
+  else if(o.status==="failed") acts=`<button class="btn sm" data-act="rehub" data-id="${o.id}">Back at office</button><button class="btn sm" data-act="returned" data-id="${o.id}">Returned</button>`;
+  return `<article class="card" style="--stripe:${STRIPE[st.cls]}">
+    <div class="row"><button class="code mono" data-open="${o.id}">${esc(o.code)}</button><span class="chip ${st.cls}">${st.label}</span>${o.example?'<span class="chip ex">Example</span>':""}${o.source==="customer"?'<span class="chip">Booked online</span>':""}</div>
+    <div class="to">${esc(o.receiver?.name)} · ${esc(o.receiver?.area)}</div>
+    <div class="meta">${esc(o.item)}${o.due&&o.due!=="Today"?" · by "+esc(o.due.toLowerCase()):""}</div>
+    <div class="meta">${due}${r?` · <b style="color:var(--ink)">${esc(r.name)}</b>`:""}</div>
+    ${acts?`<div class="acts">${acts}</div>`:""}
+  </article>`;
+}
+
+function renderBoard(all){
+  const active = all.filter(o => STATUSES[o.status] && (STATUSES[o.status].lane!=="done" || isToday(o.updatedAt)));
+  const doneToday = all.filter(o=>o.status==="delivered" && isToday(o.updatedAt));
+  const cash = doneToday.reduce((s,o)=>s+(Number(o.collect)||0)+(o.feeBy==="receiver"?Number(o.fee)||0:0),0);
+  const fees = all.filter(o=>isToday(o.createdAt)).reduce((s,o)=>s+(Number(o.fee)||0),0);
+  $("#kpis").innerHTML = [
+    [all.filter(o=>o.status==="booked"||o.status==="pickup").length,"waiting for pickup"],
+    [all.filter(o=>o.status==="at_hub").length,"at the office, ready to send"],
+    [all.filter(o=>o.status==="out").length,"out for delivery"],
+    [doneToday.length,"delivered today"],
+    [naira(cash),"cash riders should bring in"],
+    [naira(fees),"fees booked today"],
+  ].map(([b,s])=>`<div class="kpi"><b>${b}</b><span>${s}</span></div>`).join("");
+  $("#board").innerHTML = LANES.map(l=>{
+    const items = active.filter(o=>STATUSES[o.status].lane===l.id).sort((a,b)=>(b.updatedAt||"").localeCompare(a.updatedAt||""));
+    return `<section class="lane"><header><h2>${l.title}</h2><span class="n num">${items.length}</span></header>
+      ${items.length? items.map(cardHTML).join("") : `<div class="empty">${l.id==="new"?`No bookings yet. <a href="#intake">Receive an order</a>`:l.hint}</div>`}</section>`;
+  }).join("");
+}
+
+function renderIntake(all){
+  const waiting = all.filter(o=>o.status==="booked"||o.status==="pickup");
+  $("#awaiting").innerHTML = waiting.length ? `<span class="eyebrow">Expected at the office</span>` + waiting.map(o=>{
+    const r=riderById(o.riderId);
+    return `<div><span><button class="btn ghost sm mono" data-checkin="${o.code}">${esc(o.code)}</button> ${esc(o.sender?.name)}</span><span class="muted">${r?esc(r.name):"no rider yet"}</span></div>`;}).join("")
+    : `<span class="hint">Nothing waiting to come in.</span>`;
+}
+
+function renderRiders(all){
+  const rs = riders();
+  const onRun = rs.filter(r=>riderState(r).label==="On a run").length;
+  const avail = rs.filter(r=>riderState(r).label==="Available").length;
+  $("#riderKpis").innerHTML = [[rs.length,"riders"],[avail,"available now"],[onRun,"on a run"],[rs.filter(r=>r.offDuty).length,"off duty"]]
+    .map(([b,s])=>`<div class="kpi"><b>${b}</b><span>${s}</span></div>`).join("");
+  $("#riderGrid").innerHTML = rs.length ? rs.map(r=>{
+    const st=riderState(r); const load=riderLoad(r.id);
+    const today = all.filter(o=>o.riderId===r.id && o.status==="delivered" && isToday(o.updatedAt));
+    const cash = today.filter(o=>!o.remitted).reduce((s,o)=>s+(Number(o.collect)||0)+(o.feeBy==="receiver"?Number(o.fee)||0:0),0);
+    return `<article class="rider">
+      <div class="hd"><div class="avatar">${esc(initials(r.name))}</div>
+        <div style="min-width:0"><h3>${esc(r.name)}</h3><div class="muted" style="font-size:13px">${esc(r.phone)}${r.plate?" · "+esc(r.plate):""}</div></div>
+        <span class="chip ${st.cls}" style="margin-left:auto"><span class="dot"></span>${st.label}</span></div>
+      ${r.example?'<span class="chip ex" style="justify-self:start">Example rider</span>':""}
+      <div class="loc"><span class="eyebrow">Last known location</span><b>${esc(r.location||"Not reported yet")}</b><span class="muted">${r.locationAt?"Updated "+ago(r.locationAt):(r.zone?"Usual zone: "+esc(r.zone):"")}</span></div>
+      <form class="inline" data-locform="${r.id}"><input name="loc" placeholder="Where is the rider now?" aria-label="Rider location"><button class="btn sm" type="submit">Update</button></form>
+      <div class="stats"><span><b>${load.length}</b> on hand</span><span><b>${today.length}</b> delivered today</span><span><b>${naira(cash)}</b> cash to remit</span></div>
+      ${load.length?`<div class="list">${load.map(o=>`<div><button class="btn ghost sm mono" data-open="${o.id}">${esc(o.code)}</button><span class="muted">${o.status==="pickup"?"Pickup: "+esc(o.sender?.name):"To "+esc(o.receiver?.area)}</span></div>`).join("")}</div>`:""}
+      <div class="acts" style="display:flex;gap:6px;flex-wrap:wrap">
+        <button class="btn sm" data-act="toggleDuty" data-rid="${r.id}">${r.offDuty?"Mark on duty":"Mark off duty"}</button>
+        ${cash>0?`<button class="btn sm" data-act="remit" data-rid="${r.id}">Cash received</button>`:""}
+        <button class="btn sm" data-act="copyRider" data-rid="${r.id}">Copy run sheet</button>
+      </div>
+    </article>`;}).join("")
+    : `<div class="panel"><h2>No riders yet</h2><p class="hint" style="margin:0">Add your riders below. You can then assign pickups and deliveries to them and see what each one is carrying.</p></div>`;
+}
+
+function renderOrders(all){
+  const fs=$("#fStatus"), fr=$("#fRider");
+  const sv=fs.value, rv=fr.value;
+  fs.innerHTML = `<option value="">All statuses</option>` + Object.entries(STATUSES).map(([k,v])=>`<option value="${k}">${v.label}</option>`).join(""); fs.value=sv;
+  fr.innerHTML = `<option value="">All riders</option>` + riders().map(r=>`<option value="${r.id}">${esc(r.name)}</option>`).join(""); fr.value=rv;
+  const q=$("#q").value.trim().toLowerCase();
+  const rows = all.filter(o=>(!sv||o.status===sv)&&(!rv||o.riderId===rv)&&(!q||[o.code,o.sender?.name,o.sender?.phone,o.receiver?.name,o.receiver?.phone,o.receiver?.area,o.item].join(" ").toLowerCase().includes(q)))
+    .sort((a,b)=>(b.createdAt||"").localeCompare(a.createdAt||""));
+  $("#orderRows").innerHTML = rows.length ? rows.map(o=>{const st=STATUSES[o.status]||{label:o.status,cls:""}; const r=riderById(o.riderId);
+    return `<tr data-open="${o.id}"><td class="mono">${esc(o.code)}</td><td><span class="chip ${st.cls}">${st.label}</span>${o.example?' <span class="chip ex">Example</span>':""}</td><td>${esc(o.receiver?.name)}<br><span class="muted">${esc(o.receiver?.phone)}</span></td><td>${esc(o.receiver?.area)}</td><td>${esc(o.item)}</td><td class="num">${(Number(o.fee)||0).toLocaleString("en-NG")}</td><td>${r?esc(r.name):"–"}</td><td class="muted">${ago(o.updatedAt)}</td></tr>`;}).join("")
+    : `<tr><td colspan="8" class="muted" style="cursor:default">No orders match.</td></tr>`;
+  const ex = all.filter(o=>o.example).length + riders().filter(r=>r.example).length;
+  $("#exampleTools").innerHTML = ex ? `<button class="btn danger" data-act="clearExamples">Remove the ${ex} example records</button>` : "";
+}
+
+/* ---------- Messages for WhatsApp ---------- */
+function messageFor(o, who){
+  const co = company() || "us"; const st=STATUSES[o.status]?.label || o.status; const r=riderById(o.riderId);
+  const pay = o.collect>0 || o.feeBy==="receiver" ? `\nAmount to pay on delivery: ${naira((Number(o.collect)||0)+(o.feeBy==="receiver"?Number(o.fee)||0:0))}` : "";
+  const link = SITE ? `\nTrack it here: ${SITE}?track=${o.code}` : "";
+  if(who==="receiver") return `Hello ${o.receiver?.name||""}, you have a package from ${o.sender?.name||"a sender"} with ${co}.\nTracking code: ${o.code}\nStatus: ${st}${r&&o.status==="out"?`\nYour rider: ${r.name}, ${r.phone}`:""}${pay}${link}\nThank you!`;
+  return `Hello ${o.sender?.name||""}, thanks for booking with ${co}.\nTracking code: ${o.code}\nTo: ${o.receiver?.name||""}, ${o.receiver?.area||""}\nStatus: ${st}${r?`\nRider: ${r.name}`:""}${link}\nDelivery fee: ${o.fee==null?"to be confirmed":naira(o.fee)}${o.feeBy==="receiver"?" (paid by receiver)":""}`;
+}
+async function copy(text){ try{ await navigator.clipboard.writeText(text); toast("Copied. Paste it into WhatsApp."); }catch(e){ toast("Couldn't copy. Select the text and copy it yourself."); } }
+
+/* ---------- Order detail ---------- */
+let openId=null;
+function openOrder(id){
+  const o = orders().find(x=>x.id===id); if(!o) return; openId=id;
+  const st=STATUSES[o.status]||{label:o.status,cls:""}; const r=riderById(o.riderId);
+  $("#dlgBody").innerHTML = `
+    <div class="hd"><h2 class="mono">${esc(o.code)}</h2><span class="chip ${st.cls}">${st.label}</span><button class="btn sm" data-close>Close</button></div>
+    <dl class="kv">
+      <dt>From</dt><dd>${esc(o.sender?.name)} · ${esc(o.sender?.phone)}${o.sender?.address?"<br>"+esc(o.sender.address):""}</dd>
+      <dt>To</dt><dd>${esc(o.receiver?.name)} · ${esc(o.receiver?.phone)}<br>${esc(o.receiver?.address)}, ${esc(o.receiver?.area)}</dd>
+      <dt>Package</dt><dd>${esc(o.item)} · ${esc(o.size)}</dd>
+      <dt>Fee</dt><dd>${o.fee==null?"Not set yet":naira(o.fee)} · ${o.feeBy==="receiver"?"receiver pays on delivery":"sender pays"}
+        <form class="fee-edit" id="feeForm" style="margin-top:6px"><input id="feeInput" type="number" min="0" step="100" aria-label="Delivery fee in naira" value="${o.fee??""}" placeholder="Set fee ₦"><button class="btn sm" type="submit">Save fee</button></form></dd>
+      ${o.collect>0?`<dt>Collect for seller</dt><dd>${naira(o.collect)}</dd>`:""}
+      <dt>Rider</dt><dd>${r?esc(r.name)+" · "+esc(r.phone):"Not assigned"}</dd>
+      <dt>Deliver by</dt><dd>${esc(o.due||"Today")}</dd>
+      ${o.notes?`<dt>Notes</dt><dd>${esc(o.notes)}</dd>`:""}
+    </dl>
+    <div><span class="eyebrow">History</span><ol class="timeline" style="margin-top:8px">${(o.history||[]).slice().reverse().map(h=>`<li><div><b>${STATUSES[h.status]?.label||esc(h.status)}</b>${h.note?" · "+esc(h.note):""}<br><small>${clock(h.at)}</small></div></li>`).join("")}</ol></div>
+    <div class="seg" role="group" aria-label="Message for"><button type="button" data-msg="sender" aria-pressed="true">Message sender</button><button type="button" data-msg="receiver" aria-pressed="false">Message receiver</button></div>
+    <div class="msg" id="msgText">${esc(messageFor(o,"sender"))}</div>
+    <div class="formacts" style="justify-content:space-between">
+      <span id="delWrap"><button class="btn sm danger" data-act="askDelete">Delete order</button></span>
+      <button class="btn primary" data-act="copyMsg">Copy message</button>
+    </div>`;
+  const d=$("#dlg"); if(!d.open) d.showModal();
+}
+$("#dlg").addEventListener("click", async e=>{
+  const o = orders().find(x=>x.id===openId);
+  if(e.target===e.currentTarget || e.target.closest("[data-close]")) return $("#dlg").close();
+  const m=e.target.closest("[data-msg]"); if(m&&o){ document.querySelectorAll("#dlg [data-msg]").forEach(b=>b.setAttribute("aria-pressed", b===m)); $("#msgText").textContent=messageFor(o,m.dataset.msg); return; }
+  const a=e.target.closest("[data-act]"); if(!a||!o) return;
+  if(a.dataset.act==="copyMsg") copy($("#msgText").textContent);
+  if(a.dataset.act==="askDelete") $("#delWrap").innerHTML=`Delete ${esc(o.code)}? <button class="btn sm danger" data-act="doDelete">Yes, delete</button> <button class="btn sm" data-act="keep">Keep</button>`;
+  if(a.dataset.act==="keep") openOrder(openId);
+  if(a.dataset.act==="doDelete"){ await Store.remove("orders",o.id); $("#dlg").close(); toast(`Deleted ${o.code}`); }
+});
+
+$("#dlg").addEventListener("submit", async e=>{
+  if(e.target.id!=="feeForm") return; e.preventDefault();
+  const o = orders().find(x=>x.id===openId); if(!o) return;
+  const v = $("#feeInput").value.trim(); if(v==="") return toast("Enter the fee in naira.");
+  await Store.patch("orders", o.id, {fee:Number(v), updatedAt:now()}).catch(()=>{}); toast(`Fee for ${o.code} set to ${naira(v)}`); openOrder(o.id);
+});
+
+/* ---------- Actions ---------- */
+document.addEventListener("click", async e=>{
+  const op=e.target.closest("[data-open]"); if(op && !e.target.closest("dialog")){ openOrder(op.dataset.open); return; }
+  const ci=e.target.closest("[data-checkin]"); if(ci){ $("#checkinCode").value=ci.dataset.checkin; $("#checkinCode").focus(); return; }
+  const a=e.target.closest("[data-act]"); if(!a || e.target.closest("dialog")) return;
+  const act=a.dataset.act; const o=a.dataset.id ? orders().find(x=>x.id===a.dataset.id) : null;
+  const pickRider = () => { const s=document.querySelector(`select[data-rider="${a.dataset.id}"]`); return s && s.value; };
+  try{
+    if(act==="sendPickup"){ const rid=pickRider(); if(!rid) return toast("Choose a rider first."); await moveOrder(o,"pickup",{riderId:rid},"Rider: "+riderById(rid).name); toast(`${riderById(rid).name} is collecting ${o.code}`); }
+    if(act==="receive"){ await moveOrder(o,"at_hub",{riderId:""},"Logged at office"); toast(`${o.code} received at the office`); }
+    if(act==="dispatch"){ const rid=pickRider(); if(!rid) return toast("Choose a rider first."); await moveOrder(o,"out",{riderId:rid},"Rider: "+riderById(rid).name); toast(`${o.code} sent out with ${riderById(rid).name}`); }
+    if(act==="delivered"){ await moveOrder(o,"delivered",{remitted:false}); toast(`${o.code} delivered`); }
+    if(act==="failed"){ await moveOrder(o,"failed",{},"Rider couldn't complete delivery"); toast(`${o.code} marked failed`); }
+    if(act==="rehub"){ await moveOrder(o,"at_hub",{riderId:""},"Back at office for another try"); }
+    if(act==="returned"){ await moveOrder(o,"returned"); }
+    if(act==="toggleDuty"){ const r=riderById(a.dataset.rid); await Store.patch("riders",r.id,{offDuty:!r.offDuty}); }
+    if(act==="remit"){ const rid=a.dataset.rid; for(const x of orders().filter(x=>x.riderId===rid&&x.status==="delivered"&&isToday(x.updatedAt)&&!x.remitted)) await Store.patch("orders",x.id,{remitted:true}); toast("Cash marked as received"); }
+    if(act==="copyRider"){ const r=riderById(a.dataset.rid); const load=riderLoad(r.id);
+      copy(`Run sheet for ${r.name}\n` + (load.length? load.map((x,i)=>`${i+1}. ${x.code} ${x.status==="pickup"?`PICK UP from ${x.sender?.name}, ${x.sender?.phone}, ${x.sender?.address||""}`:`DELIVER to ${x.receiver?.name}, ${x.receiver?.phone}, ${x.receiver?.address}, ${x.receiver?.area}`}${x.collect>0||x.feeBy==="receiver"?` · collect ${naira((Number(x.collect)||0)+(x.feeBy==="receiver"?Number(x.fee)||0:0))}`:""}${x.notes?` · ${x.notes}`:""}`).join("\n") : "Nothing assigned right now.")); }
+    if(act==="clearExamples"){ for(const x of orders().filter(x=>x.example)) await Store.remove("orders",x.id); for(const r of riders().filter(r=>r.example)) await Store.remove("riders",r.id); toast("Example records removed"); }
+  }catch(err){}
+});
+
+document.addEventListener("submit", async e=>{
+  const f=e.target.closest("[data-locform]"); if(!f) return; e.preventDefault();
+  const v=f.loc.value.trim(); if(!v) return;
+  await Store.patch("riders", f.dataset.locform, {location:v, locationAt:now()}).catch(()=>{}); toast("Location updated");
+});
+
+/* Receive order form */
+let arrive="pickup";
+$("#arriveSeg").addEventListener("click", e=>{ const b=e.target.closest("button"); if(!b) return; arrive=b.dataset.v;
+  document.querySelectorAll("#arriveSeg button").forEach(x=>x.setAttribute("aria-pressed", x===b));
+  $("#arriveHint").textContent = arrive==="pickup" ? "The order goes to New bookings until a rider collects it." : "The package goes straight to At our office, ready to send out.";
+  $("#sAddrWrap").hidden = arrive!=="pickup"; });
+$("#orderForm").addEventListener("submit", async e=>{
+  e.preventDefault();
+  if(arrive==="pickup" && !$("#sAddr").value.trim()){ toast("Add the pickup address, or choose \"It's at our office now\"."); $("#sAddr").focus(); return; }
+  let code=newCode(); while(Store.data.orders[code]) code=newCode();
+  const status = arrive==="pickup" ? "booked" : "at_hub";
+  const o = { code, status, createdAt:now(), updatedAt:now(),
+    sender:{name:$("#sName").value.trim(), phone:$("#sPhone").value.trim(), address:arrive==="pickup"?$("#sAddr").value.trim():""},
+    receiver:{name:$("#rName").value.trim(), phone:$("#rPhone").value.trim(), address:$("#rAddr").value.trim(), area:$("#rArea").value.trim()},
+    item:$("#item").value.trim(), size:$("#size").value, fee:Number($("#fee").value)||0, feeBy:$("#feeBy").value, collect:Number($("#cod").value)||0,
+    due:$("#due").value, notes:$("#notes").value.trim(), riderId:"",
+    history:[{status:"booked",at:now(),note:"Order received"}].concat(status==="at_hub"?[{status:"at_hub",at:now(),note:"Dropped off at office"}]:[]) };
+  try{ await Store.set("orders", code, o); }catch(err){ return; }
+  e.target.reset(); toast(`Saved. Tracking code ${code}`);
+  const msg=messageFor({...o,id:code},"sender"); $("#lastSaved").hidden=false; $("#lastSaved").textContent=msg; $("#copyLast").hidden=false;
+});
+$("#copyLast").addEventListener("click", ()=>copy($("#lastSaved").textContent));
+
+/* Receive package */
+$("#checkinForm").addEventListener("submit", async e=>{
+  e.preventDefault(); const code=$("#checkinCode").value.trim().toUpperCase().replace(/^(?!DD-)/,"DD-");
+  const o=orders().find(x=>x.code===code);
+  if(!o) return toast(`No order with code ${code}. Check the code or receive it as a new order.`);
+  if(o.status==="at_hub") return toast(`${code} is already at the office.`);
+  if(!["booked","pickup","failed"].includes(o.status)) return toast(`${code} is ${STATUSES[o.status].label.toLowerCase()}, so it can't be received.`);
+  await moveOrder(o,"at_hub",{riderId:""},"Logged at office").catch(()=>{}); $("#checkinCode").value=""; toast(`${code} received at the office`);
+});
+
+/* Riders */
+$("#riderForm").addEventListener("submit", async e=>{
+  e.preventDefault(); const id="r"+Date.now().toString(36);
+  try{ await Store.set("riders", id, {name:$("#rdName").value.trim(), phone:$("#rdPhone").value.trim(), plate:$("#rdPlate").value.trim(), zone:$("#rdZone").value.trim(), offDuty:false, createdAt:now()}); }catch(err){ return; }
+  e.target.reset(); toast("Rider added");
+});
+
+/* Search + lookup */
+["#q","#fStatus","#fRider"].forEach(s=>$(s).addEventListener("input",()=>renderOrders(orders())));
+$("#lookupForm").addEventListener("submit", e=>{ e.preventDefault();
+  let v=$("#lookupInput").value.trim().toUpperCase(); if(!v) return; if(!v.startsWith("DD-")) v="DD-"+v;
+  const o=orders().find(x=>x.code===v); if(o){ openOrder(o.id); $("#lookupInput").value=""; } else toast(`No order with code ${v}.`); });
+
+/* Company name */
+$("#coName").addEventListener("click", ()=>{
+  $("#dlgBody").innerHTML=`<form class="dlg" id="coForm" style="padding:0"><div class="hd"><h2>Company name</h2></div><label>Shown in messages to customers<input id="coInput" value="${esc(company())}" placeholder="e.g. Swift Dispatch Lagos"></label><div class="formacts"><button type="button" class="btn" data-close>Cancel</button><button class="btn primary" type="submit">Save</button></div></form>`;
+  $("#dlg").showModal(); openId=null;
+  $("#coForm").addEventListener("submit", async ev=>{ ev.preventDefault(); await Store.set("settings","company",{name:$("#coInput").value.trim()}).catch(()=>{}); $("#dlg").close(); });
+});
+
+/* ---------- Customer page ---------- */
+const CUSTOMER_URL = SITE;
+$("#custLinkBtn").addEventListener("click", ()=>copy(CUSTOMER_URL));
+let cArrive="pickup", cMode="book";
+function setCMode(m){ cMode=m;
+  document.querySelectorAll("[data-cmode]").forEach(b=>b.setAttribute("aria-pressed", b.dataset.cmode===m));
+  if(m==="book"){ const done=!!$("#custDone").dataset.code; $("#custForm").hidden=done; $("#custDone").hidden=!done; }
+  else { $("#custForm").hidden=true; $("#custDone").hidden=true; }
+  $("#custTrackForm").hidden = m!=="track";
+}
+document.querySelectorAll("[data-cmode]").forEach(b=>b.addEventListener("click",()=>setCMode(b.dataset.cmode)));
+$("#cArriveSeg").addEventListener("click", e=>{ const b=e.target.closest("button"); if(!b) return; cArrive=b.dataset.v;
+  document.querySelectorAll("#cArriveSeg button").forEach(x=>x.setAttribute("aria-pressed", x===b));
+  $("#cAddrWrap").hidden = cArrive!=="pickup"; });
+$("#custForm").addEventListener("submit", async e=>{
+  e.preventDefault();
+  if(cArrive==="pickup" && !$("#cAddr").value.trim()){ toast("Add your pickup address, or choose to bring it to our office."); $("#cAddr").focus(); return; }
+  const f = { arrive:cArrive, senderName:$("#cName").value, senderPhone:$("#cPhone").value, senderAddress:$("#cAddr").value,
+    receiverName:$("#crName").value, receiverPhone:$("#crPhone").value, receiverAddress:$("#crAddr").value, area:$("#crArea").value,
+    item:$("#cItem").value, size:$("#cSize").value, feeBy:$("#cFeeBy").value, collect:$("#cCod").value, due:$("#cDue").value, notes:$("#cNotes").value };
+  $("#cSubmit").disabled=true; $("#cSubmit").textContent="Booking…";
+  try{
+    const res = await api("bookOrder", f);
+    e.target.reset(); $("#custDone").dataset.code=res.code; $("#custCode").textContent=res.code; setCMode("book"); window.scrollTo(0,0);
+  }catch(err){ toast(errText(err)); }
+  finally{ $("#cSubmit").disabled=false; $("#cSubmit").textContent="Book delivery"; }
+});
+$("#custCopy").addEventListener("click", ()=>copy($("#custCode").textContent));
+$("#custAgain").addEventListener("click", ()=>{ delete $("#custDone").dataset.code; setCMode("book"); });
+$("#custTrackNow").addEventListener("click", ()=>{ $("#ctCode").value=$("#custCode").textContent; setCMode("track"); renderCustTrack(); });
+$("#custTrackForm").addEventListener("submit", e=>{ e.preventDefault(); renderCustTrack(); });
+
+const CSTEPS = [["Booked",["booked","pickup"]],["At our office",["at_hub"]],["On the way",["out"]],["Delivered",["delivered"]]];
+async function renderCustTrack(){
+  const box=$("#ctResult"); let v=$("#ctCode").value.trim().toUpperCase().replace(/\s+/g,"");
+  if(!v){ box.innerHTML=""; return; } if(!v.startsWith("DD-")) v="DD-"+v.replace(/^DD/,"");
+  box.innerHTML = `<p class="hint">Looking it up…</p>`;
+  let o=null; try{ o = await api("trackOrder", v); }catch(err){ box.innerHTML = `<p style="margin:0">${esc(errText(err))}</p>`; return; }
+  if(!o){ box.innerHTML = `<p style="margin:0">We couldn't find <b class="mono">${esc(v)}</b>. Check the code on your booking message and try again.</p>`; return; }
+  const idx = CSTEPS.findIndex(([,ss])=>ss.includes(o.status));
+  const failed = o.status==="failed" || o.status==="returned";
+  const reach = failed ? 2 : idx;
+  const r=o.rider;
+  const headline = {booked:"We've received your booking.",pickup:"A rider is on the way to pick up your package.",at_hub:"Your package is at our office.",out:"Your package is on the way.",delivered:"Your package has been delivered.",failed:"We couldn't deliver your package yet. We'll contact you.",returned:"Your package was returned to the sender."}[o.status]||"";
+  box.innerHTML = `
+    <div style="display:grid;gap:12px">
+      <div class="row" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span class="bigcode" style="font-size:22px">${esc(o.code)}</span><span class="chip ${STATUSES[o.status]?.cls||""}">${STATUSES[o.status]?.label||esc(o.status)}</span></div>
+      <p style="margin:0;font-weight:600">${headline}</p>
+      <div class="steps ${failed?"bad":""}">${CSTEPS.map(([l],i)=>`<div class="${i<=reach?"on":""}"><i></i>${l}</div>`).join("")}</div>
+      <dl class="kv">
+        <dt>Going to</dt><dd>${esc(o.receiver?.name)}, ${esc(o.receiver?.area)}</dd>
+        <dt>Package</dt><dd>${esc(o.item)}</dd>
+        <dt>Delivery fee</dt><dd>${o.fee==null?"We'll confirm it with you":naira(o.fee)+(o.feeBy==="receiver"?", paid by receiver":"")}</dd>
+        ${r?`<dt>Your rider</dt><dd>${esc(r.name)} · ${esc(r.phone)}</dd>`:""}
+      </dl>
+      <div><span class="eyebrow">Updates</span><ol class="timeline" style="margin-top:8px">${(o.history||[]).slice().reverse().map(h=>`<li><div><b>${STATUSES[h.status]?.label||esc(h.status)}</b><br><small>${clock(h.at)}</small></div></li>`).join("")}</ol></div>
+    </div>`;
+}
+
+setInterval(()=>{ if(currentTab()==="riders") renderRiders(orders()); }, 60000);
+if(BOOT.mode==="staff"){ document.querySelectorAll('a[href="SITEURL"]').forEach(a=>a.href=SITE); }
+if(BOOT.mode!=="staff" && BOOT.track){ $("#ctCode").value=BOOT.track; setCMode("track"); renderCustTrack(); }
+showTab(); render(); Store.init();
+})();
+</script>
+</body>
+</html>
