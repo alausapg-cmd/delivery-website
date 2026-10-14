@@ -1,58 +1,60 @@
-# Put your delivery website online (free)
+# Setting up your delivery website
 
-The website runs on Google Apps Script, which is free with a Google account. All orders and riders are saved in a Google Sheet called **Dispatch Desk data** in your Google Drive, so you can open it any time.
+The website has two parts:
 
-You get one web address. Customers use it to book a delivery and track a package, and they don't need any account. Your staff add `?staff=1` to the end of the address and type a PIN to open the dispatch board.
-
-## Steps (about 10 minutes, on a computer)
-
-1. Go to **script.google.com** and sign in with the Google account the business will use.
-2. Click **New project**. Click "Untitled project" at the top and rename it, for example *Dispatch Desk*.
-3. **Code.gs**: delete everything in the editor, then paste in the whole of `apps-script/Code.gs`.
-4. **Change the staff PIN**: near the top, find `var STAFF_PIN = '2468';` and replace 2468 with your own PIN. Click the save icon.
-5. **Index page**: click the **+** next to "Files", choose **HTML**, and name it `Index` (capital I, no `.html`). Delete what's in it and paste in the whole of `apps-script/Index.html`. Save.
-6. Click **Deploy** → **New deployment**. Click the gear icon next to "Select type" and choose **Web app**. Set:
-   - Description: *Website*
-   - Execute as: **Me**
-   - Who has access: **Anyone**
-7. Click **Deploy**. Google asks you to **Authorize access**: choose your account. If you see "Google hasn't verified this app", click **Advanced** → **Go to Dispatch Desk (unsafe)** → **Allow**. This warning is normal for scripts you write yourself.
-8. Copy the **Web app URL** (it ends in `/exec`). That is your website.
-
-## Hosting the pages on Vercel (optional, nicer address)
-
-Vercel gives you an address like `yourcompany.vercel.app` with no Google banner. The orders still live in your Google Sheet. Apps Script stays as the engine behind the site.
-
-1. Finish steps 1–8 above first and copy the `/exec` address.
-2. The website files are in this repository. Put that address in `config.js` (Claude can do this for you).
-3. The folder goes into a GitHub repository (Claude can push it there).
-4. On **vercel.com**, sign in with GitHub, then **Add New → Project** → choose the repository → **Deploy**.
-5. Your links become `https://<name>.vercel.app` for customers and `https://<name>.vercel.app/?staff=1` for staff.
-
-Every later change pushed to the repository goes live on Vercel automatically. A change to `Code.gs` still has to be published again in Apps Script.
+- **The pages** (`index.html`, `config.js`) are hosted on Vercel. Every change pushed to this GitHub repository goes live on its own.
+- **The server** (`apps-script/Code.gs`) runs free on Google Apps Script. It saves everything in a Google Sheet called **Dispatch Desk data** in your Google Drive, with one tab each for Orders, Riders, Zones, Merchants (vendors), Pickups and Settings. Delivery photos and signatures go in a Drive folder called **Dispatch Desk proof of delivery**.
 
 ## Your links
 
-| Who | Link |
-|---|---|
-| Customers: book and track | `https://script.google.com/macros/s/…/exec` |
-| Track one package directly | `…/exec?track=DD-7K3Q` |
-| Staff dispatch board | `…/exec?staff=1` |
+| Who | Link | What they do |
+|---|---|---|
+| Customers | `https://<your-site>.vercel.app` | Book one delivery, see the zone fee, track a package |
+| Track one package | `https://<your-site>.vercel.app/?track=DD-XXXXXX` | Opens straight to that package |
+| Vendors | `https://<your-site>.vercel.app/?merchant=1` | Create an account, upload orders in bulk, book pickups, download reports |
+| Riders | `https://<your-site>.vercel.app/?rider=1` | See their run, mark pickups collected, record proof of delivery |
+| Staff | `https://<your-site>.vercel.app/?staff=1` | Dispatch board, auto-assign, zones, riders, vendors, all orders (needs the staff PIN) |
 
-Put the customer link on your WhatsApp status, Instagram bio and business profile. In the staff board, the **Customer page link** button copies it. Every message you copy for a customer includes a link straight to their tracking page.
+The **Links to share** button on the staff board copies all of these.
+
+## Updating the server (do this after every new `Code.gs`)
+
+1. Open **script.google.com** and open your project.
+2. Click **Code.gs**, select everything and delete it, then paste in the whole of `apps-script/Code.gs` from this repository.
+3. Near the top, set `var STAFF_PIN = '2468';` back to **your own PIN**. Click the save icon.
+4. If the project still has an **Index.html** file, you can delete it (three dots next to it → Delete). The website no longer uses it.
+5. Click **Deploy → Manage deployments**, click the pencil icon, set Version to **New version**, then **Deploy**. The `/exec` address stays the same, so `config.js` doesn't change.
+6. Google may ask you to **Authorize access** again, because the server now saves delivery photos to your Drive. Choose your account. If you see "Google hasn't verified this app", click **Advanced → Go to Dispatch Desk (unsafe) → Allow**.
+
+Optional: put your website address in `var SITE_URL = '';` (for example `'https://yourcompany.vercel.app'`). Anyone who opens the old Apps Script link is then sent to the website.
 
 ## First things to do on the staff board
 
-- Click **Set your company name** at the top so it shows on the customer page and in messages.
-- Add your riders on the **Riders** tab.
-- Customer bookings arrive in **New bookings** marked "Booked online". Open each one and set the delivery fee.
+1. Click **Set your company name** at the top.
+2. **Zones** tab: add your delivery zones, the areas in each (separated by commas) and the fee. For example *Mainland*: Yaba, Surulere, Ikeja, ₦2,500. Orders whose area matches a zone get that fee automatically.
+3. **Riders** tab: add each rider, tick the zones they cover (none ticked means any zone), and give them a 4 to 6 digit **PIN**. They sign in on the rider link with their phone number and that PIN.
+4. Send vendors the vendor link. They create their own account.
 
-## Making changes later
+## How a day works
 
-If you paste new code, you must publish it again: **Deploy** → **Manage deployments** → pencil icon → Version: **New version** → **Deploy**. The web address stays the same.
+- Customers book on the main link. Vendors add orders one at a time or upload a CSV of up to 500 at once, and can book a pickup from their shop at the same time.
+- On the board, **Auto-assign riders** gives every vendor pickup, customer pickup and package at the office to the least busy on-duty rider who covers that zone.
+- Riders see their pickups on their phone and tap **Collected**. The packages show up **At our office**.
+- Click **Auto-assign riders** again to give the office packages a rider, then **Send out all assigned**.
+- At the door the rider taps **Delivered**, types who received it, and gets a signature on the screen (a photo is optional). Customers and vendors see who received it.
+- Vendors see delivered, pending and failed orders on **My orders**, and can download the list or copy a summary.
+
+## First-time setup (only if starting from scratch)
+
+1. On **script.google.com**, click **New project** and name it *Dispatch Desk*.
+2. Paste `apps-script/Code.gs` into Code.gs and set your PIN.
+3. **Deploy → New deployment →** gear icon **→ Web app**. Execute as **Me**, Who has access **Anyone**. Deploy and authorize.
+4. Copy the Web app URL (it ends in `/exec`) into `config.js`.
+5. On **vercel.com**, **Add New → Project**, choose this repository, **Deploy**.
 
 ## Good to know
 
-- The staff board refreshes every 20 seconds, so everyone sees new orders without reloading.
-- Customers can only see their own package, and only by its tracking code. They see the receiver's first name and area, the status, and the rider's name and phone while the package is moving. They never see addresses, other phone numbers or other orders.
-- Google shows a small grey banner on Apps Script sites saying "This application was created by a Google Apps Script user". That is normal on the free plan.
-- Want a nicer address like `www.yourcompany.com.ng`? You can buy a domain and set it to redirect to this address.
+- Customers only see their own package, by its tracking code: the receiver's first name and area, the status, who received it, and the rider's name and phone while it's moving.
+- Vendors only see their own orders. Riders only see the jobs assigned to them.
+- Vendor passwords and rider PINs are stored scrambled (hashed), never as plain text. Too many wrong tries locks that phone number out for 10 minutes.
+- You can pause a vendor account on the **Vendors** tab.

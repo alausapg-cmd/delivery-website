@@ -70,7 +70,8 @@ label{display:grid;gap:4px;font-size:13px;font-weight:500;min-width:0}
 .btn.danger{color:var(--bad)}
 .btn[disabled]{opacity:.5;cursor:not-allowed}
 
-.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:20px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:20px}
+@media (max-width:480px){.kpis{grid-template-columns:1fr 1fr;gap:8px}}
 .kpi{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px}
 .kpi b{display:block;font-family:var(--f-display);font-size:28px;line-height:1.1;font-variant-numeric:tabular-nums}
 .kpi span{font-size:13px;color:var(--muted)}
@@ -175,9 +176,56 @@ body.cust .staffonly{display:none}
 .fee-edit input{width:140px}
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:9px;font-weight:500;z-index:50;max-width:calc(100vw - 32px)}
 @media (prefers-reduced-motion:no-preference){.card{transition:transform .12s} .card:hover{transform:translateY(-1px)}}
+
+/* ---- v2 additions: vendor portal, rider page, zones, proof of delivery ---- */
+.mode{display:none}
+body[data-mode="staff"] .mode.staff, body[data-mode="merchant"] .mode.merchant,
+body[data-mode="rider"] .mode.rider, body[data-mode="customer"] .mode.customer{display:block}
+header.top{display:none}
+body[data-mode="staff"]:not(.locked) header.top{display:block}
+body.locked [data-view]{display:none!important}
+.vbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--surface);border-bottom:1px solid var(--line)}
+.vbar .topbar{padding-block:10px}
+.vbar .who{margin-left:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:13.5px}
+.authwrap{max-width:460px;margin:28px auto;display:grid;gap:14px}
+.toolrow{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+.toolrow .grow{flex:1}
+.pk{border-left-color:var(--accent)}
+.pk .big{font-family:var(--f-display);font-size:18px;font-weight:700}
+.tasks{display:grid;gap:10px}
+.task{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px;display:grid;gap:8px;border-left:4px solid var(--stripe,var(--line));min-width:0}
+.task h3{font-size:16px;overflow-wrap:anywhere}
+.task .addr{font-size:14.5px;overflow-wrap:anywhere}
+.task .acts{display:flex;gap:8px;flex-wrap:wrap}
+.task .acts .btn{flex:1 1 auto}
+.sectionh{display:flex;align-items:baseline;gap:8px;margin:18px 0 8px}
+.sectionh h2{font-size:17px}
+.sectionh .n{color:var(--muted);font-size:13px}
+.sig{width:100%;height:170px;border:1.5px dashed var(--line);border-radius:8px;background:var(--surface);touch-action:none;display:block}
+.podimg{display:flex;gap:10px;flex-wrap:wrap}
+.podimg img{max-height:140px;border:1px solid var(--line);border-radius:6px;background:#fff}
+.zonerow{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2fr) 120px auto;gap:8px;align-items:end;padding-block:10px;border-bottom:1px solid var(--line)}
+@media (max-width:700px){.zonerow{grid-template-columns:minmax(0,1fr)}}
+.checks{display:flex;flex-wrap:wrap;gap:6px}
+.checks label{display:inline-flex;flex-direction:row;align-items:center;gap:6px;background:var(--sunken);border-radius:99px;padding:4px 10px;font-weight:500;cursor:pointer}
+.checks input{width:auto}
+.err{color:var(--bad);font-size:12.5px}
+tr.bad td{background:var(--bad-soft)}
+.pill-row{display:flex;gap:6px;flex-wrap:wrap}
+.pill-row button{border:1px solid var(--line);background:var(--surface);border-radius:99px;padding:5px 12px;font-weight:600;font-size:13px;cursor:pointer;color:var(--muted)}
+.pill-row button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.result{border-radius:var(--r);padding:14px;display:grid;gap:8px}
+.result.ok{background:var(--ok-soft);border:1.5px solid var(--ok)}
+.result.warn{background:var(--warn-soft);border:1.5px solid var(--warn)}
+.fee-est{font-size:13.5px;font-weight:600;color:var(--ok)}
+.linkish{background:none;border:0;padding:0;color:var(--accent);font-weight:600;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.cfoot{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;font-size:13.5px;color:var(--muted)}
+.cfoot a{color:var(--accent);font-weight:600}
 </style>
+<script src="config.js"></script>
 </head>
 <body>
+<!-- ================= STAFF HEADER ================= -->
 <header class="top">
   <div class="wrap">
     <div class="topbar">
@@ -185,224 +233,410 @@ body.cust .staffonly{display:none}
         <div class="mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--accent-ink)"><path d="M3 7l9-4 9 4-9 4-9-4z"/><path d="M3 7v10l9 4 9-4V7"/><path d="M12 11v10"/></svg></div>
         <div style="min-width:0">
           <h1>Dispatch Desk</h1>
-          <span class="co" id="coName" title="Change company name">Your delivery company</span>
+          <span class="co" id="coName" title="Change company name">Set your company name</span>
         </div>
       </div>
-      <button class="btn sm" id="custLinkBtn" type="button" title="Copy the link you give to customers">Customer page link</button>
+      <button class="btn sm" id="linksBtn" type="button">Links to share</button>
       <form class="lookup" id="lookupForm">
-        <input id="lookupInput" placeholder="Track a code, e.g. DD-7K3Q" aria-label="Tracking code" autocomplete="off">
+        <input id="lookupInput" placeholder="Track a code, e.g. DD-7K3QXP" aria-label="Tracking code" autocomplete="off">
         <button class="btn primary" type="submit">Track</button>
       </form>
     </div>
     <nav class="tabs" aria-label="Sections">
       <a href="#board" data-tab="board">Send out <span class="ct" id="ctBoard">0</span></a>
-      <a href="#intake" data-tab="intake">Receive order / package</a>
+      <a href="#intake" data-tab="intake">Receive</a>
       <a href="#riders" data-tab="riders">Riders <span class="ct" id="ctRiders">0</span></a>
+      <a href="#zones" data-tab="zones">Zones</a>
+      <a href="#vendors" data-tab="vendors">Vendors <span class="ct" id="ctVendors">0</span></a>
       <a href="#orders" data-tab="orders">All orders</a>
     </nav>
   </div>
 </header>
 
+<!-- ================= VENDOR HEADER ================= -->
+<div class="mode merchant">
+  <div class="vbar" id="mBar" hidden>
+    <div class="wrap">
+      <div class="topbar">
+        <div class="brand">
+          <div class="mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--accent-ink)"><path d="M3 7l9-4 9 4-9 4-9-4z"/><path d="M3 7v10l9 4 9-4V7"/><path d="M12 11v10"/></svg></div>
+          <div style="min-width:0"><h1 id="mBiz">Vendor</h1><span class="muted" style="font-size:12.5px" id="mCo">Vendor account</span></div>
+        </div>
+        <div class="who"><button class="btn sm" id="mRefresh" type="button">Refresh</button><button class="btn sm" id="mLogout" type="button">Sign out</button></div>
+      </div>
+      <nav class="tabs" aria-label="Vendor sections">
+        <a href="#report" data-mtab="report">My orders</a>
+        <a href="#new" data-mtab="new">New order</a>
+        <a href="#bulk" data-mtab="bulk">Bulk upload</a>
+        <a href="#pickups" data-mtab="pickups">Pickups</a>
+      </nav>
+    </div>
+  </div>
+</div>
+
+<!-- ================= RIDER HEADER ================= -->
+<div class="mode rider">
+  <div class="vbar" id="rBar" hidden>
+    <div class="wrap"><div class="topbar">
+      <div class="brand"><div class="avatar" id="rAvatar">R</div><div style="min-width:0"><h1 id="rName" style="font-size:18px">Rider</h1><span class="muted" style="font-size:12.5px" id="rCo">My run</span></div></div>
+      <div class="who"><button class="btn sm" id="rRefresh" type="button">Refresh</button><button class="btn sm" id="rLogout" type="button">Sign out</button></div>
+    </div></div>
+  </div>
+</div>
+
 <main class="wrap">
   <div class="banner" id="modeBanner" hidden></div>
 
-  <!-- STAFF SIGN-IN -->
-  <section id="pinView" hidden>
-    <form class="panel" id="pinForm" style="max-width:380px;margin:40px auto" autocomplete="off">
-      <h2>Staff sign-in</h2>
-      <p class="hint" style="margin:0">Enter the staff PIN to open the dispatch board.</p>
-      <input id="pinInput" type="password" inputmode="numeric" aria-label="Staff PIN" placeholder="PIN">
-      <div class="formacts"><button class="btn primary" type="submit">Open dispatch board</button></div>
-      <p class="hint" style="margin:0"><a href="SITEURL" id="toCustomer" target="_top">Go to the customer page</a></p>
-    </form>
-  </section>
-
-  <!-- BOARD -->
-  <section data-view="board">
-    <div class="kpis" id="kpis"></div>
-    <div class="board" id="board"></div>
-  </section>
-
-  <!-- INTAKE -->
-  <section data-view="intake" hidden>
-    <div class="grid2">
-      <form class="panel" id="orderForm" autocomplete="off">
-        <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
-          <h2>Receive an order</h2>
-          <div class="seg" role="group" aria-label="How the package arrives" id="arriveSeg">
-            <button type="button" data-v="pickup" aria-pressed="true">We pick it up</button>
-            <button type="button" data-v="dropoff" aria-pressed="false">It's at our office now</button>
-          </div>
-        </div>
-        <p class="hint" id="arriveHint" style="margin:0">The order goes to New bookings until a rider collects it.</p>
-        <fieldset>
-          <legend>Sender</legend>
-          <div class="fields">
-            <label>Name<input id="sName" required placeholder="e.g. Amaka's Closet"></label>
-            <label>Phone<input id="sPhone" required inputmode="tel" placeholder="0803 000 0000"></label>
-            <label class="full" id="sAddrWrap">Pickup address<input id="sAddr" placeholder="Street, area, landmark"></label>
-          </div>
-        </fieldset>
-        <fieldset>
-          <legend>Receiver</legend>
-          <div class="fields">
-            <label>Name<input id="rName" required></label>
-            <label>Phone<input id="rPhone" required inputmode="tel"></label>
-            <label class="full">Delivery address<input id="rAddr" required placeholder="Street, area, landmark"></label>
-            <label>Area / zone<input id="rArea" required list="areas" placeholder="e.g. Lekki"></label>
-            <label>Deliver by<select id="due"><option>Today</option><option>Tomorrow</option><option>Within 48 hours</option></select></label>
-          </div>
-        </fieldset>
-        <fieldset>
-          <legend>Package and payment</legend>
-          <div class="fields">
-            <label class="full">What's inside<input id="item" required placeholder="e.g. 2 pairs of shoes in a nylon bag"></label>
-            <label>Size<select id="size"><option>Small (envelope / nylon)</option><option>Medium (shoe box)</option><option>Large (carton)</option></select></label>
-            <label>Delivery fee (₦)<input id="fee" type="number" min="0" step="100" required placeholder="2500"></label>
-            <label>Fee paid by<select id="feeBy"><option value="sender">Sender (already paid)</option><option value="receiver">Receiver, on delivery</option></select></label>
-            <label>Collect for seller (₦)<input id="cod" type="number" min="0" step="100" placeholder="0 if none"></label>
-            <label class="full">Notes for rider<textarea id="notes" placeholder="Call before arriving, fragile, gate code…"></textarea></label>
-          </div>
-        </fieldset>
-        <div class="formacts">
-          <button class="btn" type="reset">Clear</button>
-          <button class="btn primary" type="submit">Save order</button>
-        </div>
+  <!-- ================= STAFF ================= -->
+  <div class="mode staff">
+    <section id="pinView" hidden>
+      <form class="panel authwrap" id="pinForm" autocomplete="off">
+        <h2>Staff sign-in</h2>
+        <p class="hint" style="margin:0">Enter the staff PIN to open the dispatch board.</p>
+        <input id="pinInput" type="password" inputmode="numeric" aria-label="Staff PIN" placeholder="PIN">
+        <div class="formacts"><button class="btn primary" type="submit">Open dispatch board</button></div>
       </form>
+    </section>
 
-      <div style="display:grid;gap:18px;min-width:0">
-        <form class="panel" id="checkinForm" autocomplete="off">
-          <h2>Receive a package</h2>
-          <p class="hint" style="margin:0">A rider just brought in a pickup, or a customer dropped one off. Enter its code to log it at the office.</p>
-          <div class="inline">
-            <input id="checkinCode" placeholder="DD-7K3Q" aria-label="Code of package received" class="mono">
-            <button class="btn primary" type="submit">Mark received</button>
+    <section data-view="board">
+      <div class="kpis" id="kpis"></div>
+      <div class="toolrow">
+        <button class="btn primary" id="autoAssign" type="button">Auto-assign riders</button>
+        <button class="btn" id="sendAll" type="button">Send out all assigned</button>
+        <span class="hint grow" id="autoHint">Auto-assign picks the least busy on-duty rider who covers each order's zone.</span>
+      </div>
+      <div class="board" id="board"></div>
+    </section>
+
+    <section data-view="intake" hidden>
+      <div class="grid2">
+        <form class="panel" id="orderForm" autocomplete="off">
+          <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+            <h2>Receive an order</h2>
+            <div class="seg" role="group" aria-label="How the package arrives" id="arriveSeg">
+              <button type="button" data-v="pickup" aria-pressed="true">We pick it up</button>
+              <button type="button" data-v="dropoff" aria-pressed="false">It's at our office now</button>
+            </div>
           </div>
-          <div id="awaiting" class="list"></div>
+          <fieldset><legend>Sender</legend>
+            <div class="fields">
+              <label>Name<input id="sName" required placeholder="e.g. Amaka's Closet"></label>
+              <label>Phone<input id="sPhone" required inputmode="tel" placeholder="0803 000 0000"></label>
+              <label class="full" id="sAddrWrap">Pickup address<input id="sAddr" placeholder="Street, area, landmark"></label>
+            </div>
+          </fieldset>
+          <fieldset><legend>Receiver</legend>
+            <div class="fields">
+              <label>Name<input id="rName" required></label>
+              <label>Phone<input id="rPhone" required inputmode="tel"></label>
+              <label class="full">Delivery address<input id="rAddr" required placeholder="Street, area, landmark"></label>
+              <label>Area<input id="rArea" required list="areas" placeholder="e.g. Lekki"><span class="fee-est" id="sFeeEst"></span></label>
+              <label>Deliver by<select id="due"><option>Today</option><option>Tomorrow</option><option>Within 48 hours</option></select></label>
+            </div>
+          </fieldset>
+          <fieldset><legend>Package and payment</legend>
+            <div class="fields">
+              <label class="full">What's inside<input id="item" required placeholder="e.g. 2 pairs of shoes in a nylon bag"></label>
+              <label>Size<select id="size"><option>Small (envelope / nylon)</option><option>Medium (shoe box)</option><option>Large (carton)</option></select></label>
+              <label>Delivery fee (₦)<input id="fee" type="number" min="0" step="100" placeholder="From zone"></label>
+              <label>Fee paid by<select id="feeBy"><option value="sender">Sender</option><option value="receiver">Receiver, on delivery</option></select></label>
+              <label>Collect for seller (₦)<input id="cod" type="number" min="0" step="100" placeholder="0 if none"></label>
+              <label class="full">Notes for rider<textarea id="notes" placeholder="Call before arriving, fragile, gate code…"></textarea></label>
+            </div>
+          </fieldset>
+          <div class="formacts"><button class="btn" type="reset">Clear</button><button class="btn primary" type="submit">Save order</button></div>
         </form>
+        <div style="display:grid;gap:18px;min-width:0">
+          <form class="panel" id="checkinForm" autocomplete="off">
+            <h2>Receive a package</h2>
+            <p class="hint" style="margin:0">A rider brought a pickup in, or a customer dropped one off. Enter its code to log it at the office.</p>
+            <div class="inline"><input id="checkinCode" placeholder="DD-7K3QXP" aria-label="Code of package received" class="mono"><button class="btn primary" type="submit">Mark received</button></div>
+            <div id="awaiting" class="list"></div>
+          </form>
+          <div class="panel">
+            <h2>Last saved</h2>
+            <div id="lastSaved" class="msg">Each order gets a tracking code. Open it from the board to copy a WhatsApp message.</div>
+            <button class="btn" id="copyLast" hidden>Copy message</button>
+          </div>
+        </div>
+      </div>
+      <datalist id="areas"></datalist>
+    </section>
+
+    <section data-view="riders" hidden>
+      <div class="kpis" id="riderKpis"></div>
+      <div class="riders" id="riderGrid"></div>
+      <form class="panel" id="riderForm" style="margin-top:18px" autocomplete="off">
+        <h2>Add a rider</h2>
+        <div class="fields">
+          <label>Full name<input id="rdName" required></label>
+          <label>Phone<input id="rdPhone" required inputmode="tel"></label>
+          <label>Bike plate number<input id="rdPlate" placeholder="e.g. LSR 214 QE"></label>
+          <label>Rider PIN (4–6 digits)<input id="rdPin" inputmode="numeric" pattern="\d{4,6}" placeholder="For the rider page"></label>
+          <div class="full"><span class="eyebrow">Zones this rider covers</span><div class="checks" id="rdZones" style="margin-top:6px"></div></div>
+        </div>
+        <div class="formacts"><button class="btn primary" type="submit">Add rider</button></div>
+      </form>
+    </section>
+
+    <section data-view="zones" hidden>
+      <div class="grid2">
         <div class="panel">
-          <h2>After you save</h2>
-          <p class="hint" style="margin:0">Each order gets a tracking code. Open it from the board to copy a ready-made WhatsApp message for the sender or receiver.</p>
-          <div id="lastSaved" class="msg" hidden></div>
-          <button class="btn" id="copyLast" hidden>Copy message</button>
+          <h2>Delivery zones</h2>
+          <p class="hint" style="margin:0">Group the areas you deliver to. Each zone has one fee, and orders are matched to a zone by their area. Riders are assigned to zones.</p>
+          <div id="zoneList"></div>
+        </div>
+        <form class="panel" id="zoneForm" autocomplete="off">
+          <h2>Add a zone</h2>
+          <label>Zone name<input id="zName" required placeholder="e.g. Lekki – Ajah"></label>
+          <label>Areas in this zone<textarea id="zAreas" required placeholder="Lekki, Ajah, VGC, Chevron, Ikota, Sangotedo"></textarea><span class="hint">Separate with commas.</span></label>
+          <label>Delivery fee (₦)<input id="zFee" type="number" min="0" step="100" required placeholder="3500"></label>
+          <div class="formacts"><button class="btn primary" type="submit">Add zone</button></div>
+          <div id="unzoned" class="hint"></div>
+        </form>
+      </div>
+    </section>
+
+    <section data-view="vendors" hidden>
+      <div class="toolrow"><span class="hint grow">Vendors create their own accounts on the vendor page. Share the link from "Links to share".</span></div>
+      <div class="tablewrap"><table>
+        <thead><tr><th>Vendor</th><th>Contact</th><th class="num">Orders</th><th class="num">In progress</th><th class="num">Delivered</th><th class="num">Failed / returned</th><th>Joined</th><th>Account</th></tr></thead>
+        <tbody id="vendorRows"></tbody>
+      </table></div>
+    </section>
+
+    <section data-view="orders" hidden>
+      <div class="toolbar">
+        <input id="q" placeholder="Search code, name, phone, area or vendor ref" aria-label="Search orders">
+        <select id="fStatus" aria-label="Filter by status"></select>
+        <select id="fRider" aria-label="Filter by rider"></select>
+        <select id="fVendor" aria-label="Filter by vendor"></select>
+        <input id="fFrom" type="date" aria-label="From date" style="width:auto">
+        <input id="fTo" type="date" aria-label="To date" style="width:auto">
+        <button class="btn" id="ordersCsv" type="button">Download CSV</button>
+      </div>
+      <div class="tablewrap"><table>
+        <thead><tr><th>Code</th><th>Status</th><th>Vendor</th><th>Receiver</th><th>Area / zone</th><th>Item</th><th class="num">Fee ₦</th><th>Rider</th><th>Updated</th></tr></thead>
+        <tbody id="orderRows"></tbody>
+      </table></div>
+    </section>
+  </div>
+
+  <!-- ================= VENDOR PORTAL ================= -->
+  <div class="mode merchant">
+    <section id="mAuth">
+      <div class="authwrap">
+        <div class="chero"><div class="mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7l9-4 9 4-9 4-9-4z"/><path d="M3 7v10l9 4 9-4V7"/><path d="M12 11v10"/></svg></div>
+          <div><h1 class="mCoName">Vendor accounts</h1><p>Send many orders at once, book pickups from your shop, and see what's been delivered.</p></div></div>
+        <div class="ctabs" role="group" aria-label="Sign in or create an account">
+          <button type="button" data-auth="login" aria-pressed="true">Sign in</button>
+          <button type="button" data-auth="signup" aria-pressed="false">Create account</button>
+        </div>
+        <form class="panel" id="mLoginForm" autocomplete="on">
+          <label>Phone number<input id="mlPhone" required inputmode="tel" autocomplete="tel"></label>
+          <label>Password<input id="mlPass" required type="password" autocomplete="current-password"></label>
+          <div class="formacts"><button class="btn primary" type="submit">Sign in</button></div>
+        </form>
+        <form class="panel" id="mSignupForm" hidden autocomplete="on">
+          <div class="fields">
+            <label class="full">Business name<input id="msBiz" required autocomplete="organization"></label>
+            <label>Your name<input id="msContact" required autocomplete="name"></label>
+            <label>Phone (WhatsApp)<input id="msPhone" required inputmode="tel" autocomplete="tel"></label>
+            <label class="full">Email (optional)<input id="msEmail" type="email" autocomplete="email"></label>
+            <label class="full">Pickup address<input id="msAddr" required placeholder="Shop or warehouse address" autocomplete="street-address"></label>
+            <label>Area<input id="msArea" required list="pubAreas" placeholder="e.g. Ikeja"></label>
+            <label>Password<input id="msPass" required type="password" minlength="6" autocomplete="new-password"></label>
+          </div>
+          <div class="formacts"><button class="btn primary" type="submit">Create vendor account</button></div>
+        </form>
+        <p class="cfoot"><a href="?">Book a single delivery instead</a></p>
+      </div>
+    </section>
+
+    <section data-mview="report" hidden>
+      <div class="toolrow">
+        <div class="pill-row" id="mRange" role="group" aria-label="Date range">
+          <button type="button" data-r="today" aria-pressed="false">Today</button>
+          <button type="button" data-r="7" aria-pressed="true">Last 7 days</button>
+          <button type="button" data-r="30" aria-pressed="false">Last 30 days</button>
+          <button type="button" data-r="all" aria-pressed="false">All time</button>
+        </div>
+        <span class="grow"></span>
+        <button class="btn" id="mCsv" type="button">Download report (CSV)</button>
+        <button class="btn" id="mCopySum" type="button">Copy summary</button>
+      </div>
+      <div class="kpis" id="mKpis"></div>
+      <div class="toolbar">
+        <input id="mq" placeholder="Search code, your ref, name, phone or area" aria-label="Search my orders">
+        <select id="mStatus" aria-label="Filter by status"></select>
+      </div>
+      <div class="tablewrap"><table>
+        <thead><tr><th>Code</th><th>Your ref</th><th>Status</th><th>Receiver</th><th>Area</th><th class="num">Fee ₦</th><th class="num">Collect ₦</th><th>Received by</th><th>Updated</th></tr></thead>
+        <tbody id="mRows"></tbody>
+      </table></div>
+    </section>
+
+    <section data-mview="new" hidden>
+      <form class="panel" id="mOrderForm" autocomplete="off" style="max-width:760px">
+        <h2>New delivery</h2>
+        <div class="fields">
+          <label>Receiver's name<input id="moName" required></label>
+          <label>Receiver's phone<input id="moPhone" required inputmode="tel"></label>
+          <label class="full">Delivery address<input id="moAddr" required placeholder="Street, area, landmark"></label>
+          <label>Area<input id="moArea" required list="pubAreas"><span class="fee-est" id="moFeeEst"></span></label>
+          <label>Your order number (optional)<input id="moRef" placeholder="e.g. #1043"></label>
+          <label class="full">What's inside<input id="moItem" required></label>
+          <label>Size<select id="moSize"><option>Small (envelope / nylon)</option><option>Medium (shoe box)</option><option>Large (carton)</option></select></label>
+          <label>Delivery fee paid by<select id="moFeeBy"><option value="sender">Me (the vendor)</option><option value="receiver">Receiver, on delivery</option></select></label>
+          <label>Amount to collect from receiver (₦)<input id="moCod" type="number" min="0" step="100" placeholder="0 if paid already"></label>
+          <label class="full">Notes for rider<textarea id="moNotes"></textarea></label>
+        </div>
+        <div class="formacts"><button class="btn primary" type="submit" id="moSubmit">Create order</button></div>
+        <div id="moResult"></div>
+      </form>
+    </section>
+
+    <section data-mview="bulk" hidden>
+      <div class="grid2">
+        <div class="panel">
+          <h2>Bulk upload</h2>
+          <p class="hint" style="margin:0">Upload a CSV file from Excel or Google Sheets, or paste the rows straight from your spreadsheet. Up to 500 orders at a time.</p>
+          <div class="toolrow" style="margin:0">
+            <label class="btn" style="display:inline-flex;cursor:pointer">Choose CSV file<input type="file" id="bFile" accept=".csv,text/csv,.txt" hidden></label>
+            <button class="btn" type="button" id="bTemplate">Download template</button>
+          </div>
+          <label>Or paste rows here (include the heading row)<textarea id="bPaste" rows="6" class="mono" style="font-size:12.5px" placeholder="receiver_name, receiver_phone, delivery_address, area, item, amount_to_collect, fee_paid_by, your_ref, notes"></textarea></label>
+          <div class="formacts" style="justify-content:flex-start"><button class="btn" type="button" id="bCheck">Check rows</button></div>
+        </div>
+        <div class="panel">
+          <h2>Pickup for these orders</h2>
+          <label class="checks" style="display:block"><label><input type="checkbox" id="bWithPickup" checked> Book a pickup from my shop</label></label>
+          <div class="fields" id="bPickupFields">
+            <label>Date<input type="date" id="bDate"></label>
+            <label>Time<select id="bWindow"><option>9am – 12pm</option><option>12pm – 3pm</option><option>3pm – 6pm</option></select></label>
+            <label class="full">Pickup address<input id="bAddr"></label>
+          </div>
+          <p class="hint" style="margin:0">Leave it unticked if you'll drop the packages at our office.</p>
         </div>
       </div>
-    </div>
-    <datalist id="areas"></datalist>
-  </section>
+      <div id="bPreview" style="margin-top:18px"></div>
+    </section>
 
-  <!-- RIDERS -->
-  <section data-view="riders" hidden>
-    <div class="kpis" id="riderKpis"></div>
-    <div class="riders" id="riderGrid"></div>
-    <form class="panel" id="riderForm" style="margin-top:18px" autocomplete="off">
-      <h2>Add a rider</h2>
-      <div class="fields">
-        <label>Full name<input id="rdName" required></label>
-        <label>Phone<input id="rdPhone" required inputmode="tel"></label>
-        <label>Bike plate number<input id="rdPlate" placeholder="e.g. LSR 214 QE"></label>
-        <label>Usual zone<input id="rdZone" list="areas" placeholder="e.g. Ikeja"></label>
+    <section data-mview="pickups" hidden>
+      <div class="grid2">
+        <form class="panel" id="pkForm" autocomplete="off">
+          <h2>Book a pickup</h2>
+          <p class="hint" style="margin:0">A rider collects all the selected orders from your shop in one trip.</p>
+          <div class="fields">
+            <label>Date<input type="date" id="pkDate" required></label>
+            <label>Time<select id="pkWindow"><option>9am – 12pm</option><option>12pm – 3pm</option><option>3pm – 6pm</option></select></label>
+            <label class="full">Pickup address<input id="pkAddr" required></label>
+            <label class="full">Notes<input id="pkNotes" placeholder="Gate, contact person, landmark"></label>
+          </div>
+          <div><div class="toolrow" style="margin-bottom:6px"><span class="eyebrow grow">Orders to collect</span><button type="button" class="linkish" id="pkAll">Select all</button></div>
+            <div id="pkOrders" class="list" style="max-height:300px;overflow:auto"></div></div>
+          <div class="formacts"><button class="btn primary" type="submit">Book pickup</button></div>
+        </form>
+        <div class="panel"><h2>My pickups</h2><div id="pkList" class="tasks"></div></div>
       </div>
-      <div class="formacts"><button class="btn primary" type="submit">Add rider</button></div>
-    </form>
-  </section>
+    </section>
+  </div>
 
-  <!-- CUSTOMER PAGE -->
-  <section data-view="customer" hidden>
-    <div class="cwrap">
-      <div class="chero">
-        <div class="mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7l9-4 9 4-9 4-9-4z"/><path d="M3 7v10l9 4 9-4V7"/><path d="M12 11v10"/></svg></div>
-        <div style="min-width:0"><h1 id="custCo">Send a package with us</h1><p>Book a delivery in two minutes, then track it with your code.</p></div>
-      </div>
-      <div class="ctabs" role="group" aria-label="What do you want to do">
-        <button type="button" data-cmode="book" aria-pressed="true">Book a delivery</button>
-        <button type="button" data-cmode="track" aria-pressed="false">Track my package</button>
-      </div>
-
-      <form class="panel" id="custForm" autocomplete="on" data-cpanel="book">
-        <fieldset>
-          <legend>Your details</legend>
-          <div class="fields">
-            <label>Your name<input id="cName" required autocomplete="name"></label>
-            <label>Your phone (WhatsApp)<input id="cPhone" required inputmode="tel" autocomplete="tel" placeholder="0803 000 0000"></label>
-          </div>
-        </fieldset>
-        <fieldset>
-          <legend>Pickup</legend>
-          <div class="seg" role="group" aria-label="Pickup or drop-off" id="cArriveSeg">
-            <button type="button" data-v="pickup" aria-pressed="true">Pick it up from me</button>
-            <button type="button" data-v="dropoff" aria-pressed="false">I'll bring it to your office</button>
-          </div>
-          <label id="cAddrWrap">Pickup address<input id="cAddr" placeholder="Street, area, landmark" autocomplete="street-address"></label>
-        </fieldset>
-        <fieldset>
-          <legend>Who is receiving it</legend>
-          <div class="fields">
-            <label>Receiver's name<input id="crName" required></label>
-            <label>Receiver's phone<input id="crPhone" required inputmode="tel"></label>
-            <label class="full">Delivery address<input id="crAddr" required placeholder="Street, area, landmark"></label>
-            <label>Area<input id="crArea" required placeholder="e.g. Lekki, Ikeja, Yaba"></label>
-            <label>When should it arrive?<select id="cDue"><option>Today</option><option>Tomorrow</option><option>Within 48 hours</option></select></label>
-          </div>
-        </fieldset>
-        <fieldset>
-          <legend>The package</legend>
-          <div class="fields">
-            <label class="full">What are you sending?<input id="cItem" required placeholder="e.g. 2 pairs of shoes in a nylon bag"></label>
-            <label>Size<select id="cSize"><option>Small (envelope / nylon)</option><option>Medium (shoe box)</option><option>Large (carton)</option></select></label>
-            <label>Who pays the delivery fee?<select id="cFeeBy"><option value="sender">I will pay</option><option value="receiver">Receiver pays on delivery</option></select></label>
-            <label class="full">Should the rider collect money for you? (₦)<input id="cCod" type="number" min="0" step="100" placeholder="Leave empty if no"></label>
-            <label class="full">Anything the rider should know?<textarea id="cNotes" placeholder="Fragile, call before arriving, best time to pick up…"></textarea></label>
-          </div>
-        </fieldset>
-        <p class="hint" style="margin:0">We'll confirm the delivery fee with you on WhatsApp before pickup.</p>
-        <div class="formacts"><button class="btn primary" type="submit" id="cSubmit">Book delivery</button></div>
+  <!-- ================= RIDER ================= -->
+  <div class="mode rider">
+    <section id="rAuth">
+      <form class="panel authwrap" id="rLoginForm" autocomplete="on">
+        <h2>Rider sign-in</h2>
+        <p class="hint" style="margin:0">Use your phone number and the PIN the office gave you.</p>
+        <label>Phone number<input id="rlPhone" required inputmode="tel" autocomplete="tel"></label>
+        <label>PIN<input id="rlPin" required type="password" inputmode="numeric"></label>
+        <div class="formacts"><button class="btn primary" type="submit">Sign in</button></div>
       </form>
+    </section>
+    <section id="rRun" hidden>
+      <form class="inline" id="rLocForm" style="margin-block:4px 6px"><input id="rLoc" placeholder="Where are you now? e.g. Ozumba Mbadiwe" aria-label="My location"><button class="btn" type="submit">Update location</button></form>
+      <div class="hint" id="rLocNow"></div>
+      <div id="rTasks"></div>
+    </section>
+  </div>
 
-      <div class="okbox" id="custDone" hidden data-cpanel="book">
-        <span class="eyebrow">Booking received</span>
-        <div class="bigcode" id="custCode"></div>
-        <p style="margin:0">Keep this tracking code. We'll message you on WhatsApp to confirm the fee and pickup time.</p>
-        <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn primary" type="button" id="custCopy">Copy code</button><button class="btn" type="button" id="custTrackNow">Track it</button><button class="btn" type="button" id="custAgain">Book another</button></div>
-      </div>
-
-      <form class="panel" id="custTrackForm" data-cpanel="track" hidden autocomplete="off">
-        <h2>Track my package</h2>
-        <div class="inline">
-          <input id="ctCode" class="mono" placeholder="Tracking code, e.g. DD-7K3Q" aria-label="Tracking code">
-          <button class="btn primary" type="submit">Track</button>
+  <!-- ================= CUSTOMER ================= -->
+  <div class="mode customer">
+    <section>
+      <div class="cwrap">
+        <div class="chero">
+          <div class="mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7l9-4 9 4-9 4-9-4z"/><path d="M3 7v10l9 4 9-4V7"/><path d="M12 11v10"/></svg></div>
+          <div style="min-width:0"><h1 id="custCo">Send a package with us</h1><p>Book a delivery in two minutes, then track it with your code.</p></div>
         </div>
-        <div id="ctResult"></div>
-      </form>
-      <p class="hint" id="custNote" style="text-align:center"></p>
-    </div>
-  </section>
-
-  <!-- ORDERS -->
-  <section data-view="orders" hidden>
-    <div class="toolbar">
-      <input id="q" placeholder="Search code, name, phone or area" aria-label="Search orders">
-      <select id="fStatus" aria-label="Filter by status"><option value="">All statuses</option></select>
-      <select id="fRider" aria-label="Filter by rider"><option value="">All riders</option></select>
-    </div>
-    <div class="tablewrap"><table>
-      <thead><tr><th>Code</th><th>Status</th><th>Receiver</th><th>Area</th><th>Item</th><th class="num">Fee ₦</th><th>Rider</th><th>Updated</th></tr></thead>
-      <tbody id="orderRows"></tbody>
-    </table></div>
-    <div class="formacts" style="margin-top:14px;justify-content:flex-start" id="exampleTools"></div>
-  </section>
+        <div class="ctabs" role="group" aria-label="What do you want to do">
+          <button type="button" data-cmode="book" aria-pressed="true">Book a delivery</button>
+          <button type="button" data-cmode="track" aria-pressed="false">Track my package</button>
+        </div>
+        <form class="panel" id="custForm" autocomplete="on">
+          <fieldset><legend>Your details</legend>
+            <div class="fields">
+              <label>Your name<input id="cName" required autocomplete="name"></label>
+              <label>Your phone (WhatsApp)<input id="cPhone" required inputmode="tel" autocomplete="tel" placeholder="0803 000 0000"></label>
+            </div>
+          </fieldset>
+          <fieldset><legend>Pickup</legend>
+            <div class="seg" role="group" aria-label="Pickup or drop-off" id="cArriveSeg">
+              <button type="button" data-v="pickup" aria-pressed="true">Pick it up from me</button>
+              <button type="button" data-v="dropoff" aria-pressed="false">I'll bring it to your office</button>
+            </div>
+            <label id="cAddrWrap">Pickup address<input id="cAddr" placeholder="Street, area, landmark" autocomplete="street-address"></label>
+          </fieldset>
+          <fieldset><legend>Who is receiving it</legend>
+            <div class="fields">
+              <label>Receiver's name<input id="crName" required></label>
+              <label>Receiver's phone<input id="crPhone" required inputmode="tel"></label>
+              <label class="full">Delivery address<input id="crAddr" required placeholder="Street, area, landmark"></label>
+              <label>Area<input id="crArea" required list="pubAreas" placeholder="e.g. Lekki, Ikeja, Yaba"><span class="fee-est" id="cFeeEst"></span></label>
+              <label>When should it arrive?<select id="cDue"><option>Today</option><option>Tomorrow</option><option>Within 48 hours</option></select></label>
+            </div>
+          </fieldset>
+          <fieldset><legend>The package</legend>
+            <div class="fields">
+              <label class="full">What are you sending?<input id="cItem" required placeholder="e.g. 2 pairs of shoes in a nylon bag"></label>
+              <label>Size<select id="cSize"><option>Small (envelope / nylon)</option><option>Medium (shoe box)</option><option>Large (carton)</option></select></label>
+              <label>Who pays the delivery fee?<select id="cFeeBy"><option value="sender">I will pay</option><option value="receiver">Receiver pays on delivery</option></select></label>
+              <label class="full">Should the rider collect money for you? (₦)<input id="cCod" type="number" min="0" step="100" placeholder="Leave empty if no"></label>
+              <label class="full">Anything the rider should know?<textarea id="cNotes" placeholder="Fragile, call before arriving, best time to pick up…"></textarea></label>
+            </div>
+          </fieldset>
+          <p class="hint" style="margin:0" id="cFeeNote">We'll confirm the delivery fee with you on WhatsApp before pickup.</p>
+          <div class="formacts"><button class="btn primary" type="submit" id="cSubmit">Book delivery</button></div>
+        </form>
+        <div class="okbox" id="custDone" hidden>
+          <span class="eyebrow">Booking received</span>
+          <div class="bigcode" id="custCode"></div>
+          <p style="margin:0" id="custDoneMsg">Keep this tracking code. We'll message you on WhatsApp to confirm pickup.</p>
+          <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn primary" type="button" id="custCopy">Copy code</button><button class="btn" type="button" id="custTrackNow">Track it</button><button class="btn" type="button" id="custAgain">Book another</button></div>
+        </div>
+        <form class="panel" id="custTrackForm" hidden autocomplete="off">
+          <h2>Track my package</h2>
+          <div class="inline"><input id="ctCode" class="mono" placeholder="Tracking code, e.g. DD-7K3QXP" aria-label="Tracking code"><button class="btn primary" type="submit">Track</button></div>
+          <div id="ctResult"></div>
+        </form>
+        <p class="cfoot"><span>Sending lots of orders?</span><a href="?merchant=1">Vendor sign-in</a></p>
+      </div>
+    </section>
+  </div>
+  <datalist id="pubAreas"></datalist>
 </main>
 
 <dialog id="dlg"><div class="dlg" id="dlgBody"></div></dialog>
 <div class="toast" id="toast" hidden></div>
 
-<script src="config.js"></script>
-<script>
-  (function(){ var q=new URLSearchParams(location.search);
-    window.BOOT={mode:q.get("staff")?"staff":"customer", track:(q.get("track")||"").replace(/[^A-Za-z0-9-]/g,"").slice(0,12), siteUrl:location.origin+location.pathname}; })();
-</script>
 <script>
 (() => {
+"use strict";
+/* ================= Shared ================= */
+const Q = new URLSearchParams(location.search);
+const MODE = Q.get("staff") ? "staff" : Q.get("rider") ? "rider" : Q.get("merchant") ? "merchant" : "customer";
+const SITE = location.origin + location.pathname;
+document.body.dataset.mode = MODE;
+
 const STATUSES = {
   booked:   {label:"Awaiting pickup",  cls:"warn", lane:"new"},
   pickup:   {label:"Rider picking up", cls:"info", lane:"new"},
@@ -410,33 +644,32 @@ const STATUSES = {
   out:      {label:"Out for delivery", cls:"info", lane:"out"},
   delivered:{label:"Delivered",        cls:"ok",   lane:"done"},
   failed:   {label:"Delivery failed",  cls:"bad",  lane:"done"},
-  returned: {label:"Returned to sender", cls:"", lane:"done"},
+  returned: {label:"Returned to sender", cls:"",   lane:"done"},
+  cancelled:{label:"Cancelled",        cls:"",     lane:"done"},
 };
-const LANES = [
-  {id:"new",  title:"New bookings", hint:"Orders waiting for a rider to collect."},
-  {id:"hub",  title:"At our office", hint:"Packages ready to send out."},
-  {id:"out",  title:"Out for delivery", hint:"With a rider on the road."},
-  {id:"done", title:"Finished today", hint:"Delivered, failed or returned today."},
-];
+const PENDING = ["booked","pickup","at_hub","out"];
 const STRIPE = {warn:"var(--warn)",info:"var(--info)",acc:"var(--accent)",ok:"var(--ok)",bad:"var(--bad)","":"var(--line)"};
-const naira = n => "₦" + (Number(n)||0).toLocaleString("en-NG");
 const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const naira = n => "₦" + (Number(n)||0).toLocaleString("en-NG");
 const now = () => new Date().toISOString();
-const isToday = iso => iso && new Date(iso).toDateString() === new Date().toDateString();
+const dayKey = d => new Date(d).toLocaleDateString("en-CA",{timeZone:"Africa/Lagos"});
+const isToday = iso => !!iso && dayKey(iso) === dayKey(Date.now());
 const ago = iso => { if(!iso) return "never"; const m = Math.round((Date.now()-new Date(iso))/60000);
   if(m<1) return "just now"; if(m<60) return m+" min ago"; const h=Math.round(m/60); if(h<24) return h+" h ago";
   return new Date(iso).toLocaleDateString("en-NG",{day:"numeric",month:"short"}); };
 const clock = iso => new Date(iso).toLocaleString("en-NG",{day:"numeric",month:"short",hour:"numeric",minute:"2-digit"});
-const newCode = () => { const a="ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; let s=""; for(let i=0;i<4;i++) s+=a[Math.floor(Math.random()*a.length)]; return "DD-"+s; };
 const initials = n => String(n||"?").split(/\s+/).filter(Boolean).slice(0,2).map(w=>w[0].toUpperCase()).join("");
+const newCode = () => { const a="ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; let s=""; for(let i=0;i<6;i++) s+=a[Math.floor(Math.random()*a.length)]; return "DD-"+s; };
+const normCode = v => { v=String(v||"").trim().toUpperCase().replace(/\s+/g,""); if(v && !v.startsWith("DD-")) v="DD-"+v.replace(/^DD/,""); return v; };
+const toLocalDate = d => { const x=new Date(d); return new Date(x.getTime()-x.getTimezoneOffset()*60000).toISOString().slice(0,10); };
+const store = { get(k){ try{ return localStorage.getItem(k)||""; }catch(e){ return ""; } }, set(k,v){ try{ v?localStorage.setItem(k,v):localStorage.removeItem(k); }catch(e){} } };
+const chip = st => { const s=STATUSES[st]||{label:st,cls:""}; return `<span class="chip ${s.cls}">${esc(s.label)}</span>`; };
 
-function toast(msg){ const t=$("#toast"); t.textContent=msg; t.hidden=false; clearTimeout(toast.t); toast.t=setTimeout(()=>t.hidden=true,2600); }
-
-/* ---------- Store: the website's Google Sheet, through the Apps Script server ---------- */
-const BOOT = window.BOOT || {mode:"customer", track:"", siteUrl:""};
-const SITE = BOOT.siteUrl;
-const api = async (fn, ...args) => {
+function toast(msg){ const t=$("#toast"); t.textContent=msg; t.hidden=false; clearTimeout(toast.t); toast.t=setTimeout(()=>t.hidden=true,3200); }
+const errText = e => String(e && e.message || e || "Something went wrong.").replace(/^Exception:\s*/,"");
+async function api(fn, ...args){
   const url = window.DISPATCH_API;
   if(!url || url.indexOf("script.google.com")<0) throw new Error("The website isn't connected to its Google Sheet yet. Add the Apps Script address in config.js.");
   let res; try{ res = await fetch(url, {method:"POST", headers:{"Content-Type":"text/plain;charset=utf-8"}, body:JSON.stringify({fn, args})}); }
@@ -445,374 +678,722 @@ const api = async (fn, ...args) => {
   if(!data) throw new Error("The server sent an unexpected reply. Try again.");
   if(!data.ok) throw new Error(data.error);
   return data.result;
-};
-const errText = e => String(e && e.message || e || "Something went wrong.").replace(/^Exception:\s*/,"");
-let PIN = ""; try{ PIN = sessionStorage.getItem("dd-pin") || ""; }catch(e){}
-const Store = {
-  mode:"loading", data:{orders:{},riders:{},settings:{}}, lastJson:"",
-  async init(){
-    if(BOOT.mode!=="staff"){
-      this.mode="shared";
-      try{ const info = await api("publicInfo"); this.data.settings = info.company ? {company:{name:info.company}} : {}; }catch(e){}
-      render(); return;
-    }
-    if(!PIN){ lock(true); return; }
-    try{ await this.refresh(true); lock(false); this.mode="shared"; render(); setInterval(()=>this.refresh(), 20000); }
-    catch(e){ PIN=""; try{ sessionStorage.removeItem("dd-pin"); }catch(_){} lock(true); toast(errText(e)); }
-  },
-  async refresh(force){
-    const d = await api("staffGetAll", PIN); const j = JSON.stringify(d);
-    if(!force && j===this.lastJson) return;
-    const busy = $("#dlg").open || (document.activeElement && /^(SELECT|INPUT|TEXTAREA)$/.test(document.activeElement.tagName));
-    this.lastJson=j; this.data = {orders:d.orders||{}, riders:d.riders||{}, settings:d.settings||{}};
-    if(!busy || force) render();
-  },
-  async set(col,id,obj){
-    try{ await api("staffSet", PIN, col, id, obj); }catch(e){ toast(errText(e) || "Couldn't save. Check your connection and try again."); throw e; }
-    this.data[col][id]=obj; this.lastJson=""; render();
-  },
-  async patch(col,id,part){ const cur=this.data[col][id]; if(!cur) return; return this.set(col,id,Object.assign({},cur,part)); },
-  async remove(col,id){
-    try{ await api("staffDelete", PIN, col, id); }catch(e){ toast("Couldn't delete that record."); return; }
-    delete this.data[col][id]; this.lastJson=""; render();
-  },
-};
-function lock(on){ document.body.classList.toggle("locked", on); $("#pinView").hidden=!on; if(on) setTimeout(()=>$("#pinInput").focus(),50); }
-$("#pinForm").addEventListener("submit", async e=>{
-  e.preventDefault(); const v=$("#pinInput").value.trim(); if(!v) return;
-  try{ await api("staffLogin", v); PIN=v; try{ sessionStorage.setItem("dd-pin", v); }catch(_){} $("#pinInput").value=""; Store.init(); }
-  catch(err){ toast(errText(err)); }
-});
-const orders = () => Object.entries(Store.data.orders).map(([id,o])=>({...o,id}));
-const riders = () => Object.entries(Store.data.riders).map(([id,r])=>({...r,id})).sort((a,b)=>(a.name||"").localeCompare(b.name||""));
-const riderById = id => id && Store.data.riders[id] ? {...Store.data.riders[id], id} : null;
-const company = () => (Store.data.settings.company && Store.data.settings.company.name) || "";
-
-async function moveOrder(o, status, extra={}, note=""){
-  const history = [...(o.history||[]), {status, at:now(), note}];
-  await Store.patch("orders", o.id, {...extra, status, updatedAt:now(), history});
-}
-function riderLoad(rid){ return orders().filter(o => o.riderId===rid && (o.status==="out"||o.status==="pickup")); }
-function riderState(r){ if(r.offDuty) return {label:"Off duty",cls:""}; return riderLoad(r.id).length ? {label:"On a run",cls:"info"} : {label:"Available",cls:"ok"}; }
-
-/* ---------- Tabs ---------- */
-function currentTab(){ if(BOOT.mode!=="staff") return "customer"; const h=(location.hash||"#board").slice(1); return ["board","intake","riders","orders"].includes(h)?h:"board"; }
-function showTab(){ const t=currentTab(); document.body.classList.toggle("cust", t==="customer");
-  document.querySelectorAll("[data-view]").forEach(s=>s.hidden = s.dataset.view!==t);
-  document.querySelectorAll("nav.tabs a").forEach(a=>{ if(a.dataset.tab===t) a.setAttribute("aria-current","page"); else a.removeAttribute("aria-current"); });
-}
-window.addEventListener("hashchange", showTab);
-
-/* ---------- Render ---------- */
-function render(){
-  const all = orders();
-  const banner=$("#modeBanner");
-  if(Store.mode==="loading"){ banner.hidden=false; banner.textContent="Connecting to your shared records…"; }
-  else banner.hidden=true;
-  $("#coName").textContent = company() || "Set your company name";
-  document.title = (company() ? company()+" · " : "") + (BOOT.mode==="staff" ? "Dispatch Desk" : "Book and track a delivery");
-
-  const areas=[...new Set([...all.map(o=>o.receiver?.area), ...riders().map(r=>r.zone)].filter(Boolean))];
-  $("#areas").innerHTML = areas.map(a=>`<option value="${esc(a)}">`).join("");
-
-  renderBoard(all); renderIntake(all); renderRiders(all); renderOrders(all);
-  $("#custCo").textContent = company() ? `Send a package with ${company()}` : "Send a package with us";
-  $("#custNote").textContent = "";
-  
-  $("#ctBoard").textContent = all.filter(o=>["booked","pickup","at_hub","out"].includes(o.status)).length;
-  $("#ctRiders").textContent = riders().length;
-}
-
-function cardHTML(o){
-  const st=STATUSES[o.status]||{label:o.status,cls:""}; const r=riderById(o.riderId);
-  const due = o.fee==null ? "Fee to confirm"+(o.collect>0?` · collect ${naira(o.collect)}`:"") : o.collect>0 ? `Collect ${naira(o.collect + (o.feeBy==="receiver"?o.fee:0))}` : (o.feeBy==="receiver" ? `Collect fee ${naira(o.fee)}` : "Prepaid");
-  let acts="";
-  const riderOpts = sel => `<option value="">Choose rider…</option>` + riders().filter(x=>!x.offDuty).map(x=>`<option value="${x.id}" ${x.id===sel?"selected":""}>${esc(x.name)} · ${riderLoad(x.id).length} on hand</option>`).join("");
-  if(o.status==="booked") acts=`<select data-rider="${o.id}" aria-label="Rider for pickup">${riderOpts(o.riderId)}</select><button class="btn sm" data-act="sendPickup" data-id="${o.id}">Send for pickup</button><button class="btn sm" data-act="receive" data-id="${o.id}">Received</button>`;
-  else if(o.status==="pickup") acts=`<button class="btn sm primary" data-act="receive" data-id="${o.id}">Received at office</button>`;
-  else if(o.status==="at_hub") acts=`<select data-rider="${o.id}" aria-label="Rider for delivery">${riderOpts(o.riderId)}</select><button class="btn sm primary" data-act="dispatch" data-id="${o.id}">Send out</button>`;
-  else if(o.status==="out") acts=`<button class="btn sm primary" data-act="delivered" data-id="${o.id}">Delivered</button><button class="btn sm" data-act="failed" data-id="${o.id}">Failed</button>`;
-  else if(o.status==="failed") acts=`<button class="btn sm" data-act="rehub" data-id="${o.id}">Back at office</button><button class="btn sm" data-act="returned" data-id="${o.id}">Returned</button>`;
-  return `<article class="card" style="--stripe:${STRIPE[st.cls]}">
-    <div class="row"><button class="code mono" data-open="${o.id}">${esc(o.code)}</button><span class="chip ${st.cls}">${st.label}</span>${o.example?'<span class="chip ex">Example</span>':""}${o.source==="customer"?'<span class="chip">Booked online</span>':""}</div>
-    <div class="to">${esc(o.receiver?.name)} · ${esc(o.receiver?.area)}</div>
-    <div class="meta">${esc(o.item)}${o.due&&o.due!=="Today"?" · by "+esc(o.due.toLowerCase()):""}</div>
-    <div class="meta">${due}${r?` · <b style="color:var(--ink)">${esc(r.name)}</b>`:""}</div>
-    ${acts?`<div class="acts">${acts}</div>`:""}
-  </article>`;
-}
-
-function renderBoard(all){
-  const active = all.filter(o => STATUSES[o.status] && (STATUSES[o.status].lane!=="done" || isToday(o.updatedAt)));
-  const doneToday = all.filter(o=>o.status==="delivered" && isToday(o.updatedAt));
-  const cash = doneToday.reduce((s,o)=>s+(Number(o.collect)||0)+(o.feeBy==="receiver"?Number(o.fee)||0:0),0);
-  const fees = all.filter(o=>isToday(o.createdAt)).reduce((s,o)=>s+(Number(o.fee)||0),0);
-  $("#kpis").innerHTML = [
-    [all.filter(o=>o.status==="booked"||o.status==="pickup").length,"waiting for pickup"],
-    [all.filter(o=>o.status==="at_hub").length,"at the office, ready to send"],
-    [all.filter(o=>o.status==="out").length,"out for delivery"],
-    [doneToday.length,"delivered today"],
-    [naira(cash),"cash riders should bring in"],
-    [naira(fees),"fees booked today"],
-  ].map(([b,s])=>`<div class="kpi"><b>${b}</b><span>${s}</span></div>`).join("");
-  $("#board").innerHTML = LANES.map(l=>{
-    const items = active.filter(o=>STATUSES[o.status].lane===l.id).sort((a,b)=>(b.updatedAt||"").localeCompare(a.updatedAt||""));
-    return `<section class="lane"><header><h2>${l.title}</h2><span class="n num">${items.length}</span></header>
-      ${items.length? items.map(cardHTML).join("") : `<div class="empty">${l.id==="new"?`No bookings yet. <a href="#intake">Receive an order</a>`:l.hint}</div>`}</section>`;
-  }).join("");
-}
-
-function renderIntake(all){
-  const waiting = all.filter(o=>o.status==="booked"||o.status==="pickup");
-  $("#awaiting").innerHTML = waiting.length ? `<span class="eyebrow">Expected at the office</span>` + waiting.map(o=>{
-    const r=riderById(o.riderId);
-    return `<div><span><button class="btn ghost sm mono" data-checkin="${o.code}">${esc(o.code)}</button> ${esc(o.sender?.name)}</span><span class="muted">${r?esc(r.name):"no rider yet"}</span></div>`;}).join("")
-    : `<span class="hint">Nothing waiting to come in.</span>`;
-}
-
-function renderRiders(all){
-  const rs = riders();
-  const onRun = rs.filter(r=>riderState(r).label==="On a run").length;
-  const avail = rs.filter(r=>riderState(r).label==="Available").length;
-  $("#riderKpis").innerHTML = [[rs.length,"riders"],[avail,"available now"],[onRun,"on a run"],[rs.filter(r=>r.offDuty).length,"off duty"]]
-    .map(([b,s])=>`<div class="kpi"><b>${b}</b><span>${s}</span></div>`).join("");
-  $("#riderGrid").innerHTML = rs.length ? rs.map(r=>{
-    const st=riderState(r); const load=riderLoad(r.id);
-    const today = all.filter(o=>o.riderId===r.id && o.status==="delivered" && isToday(o.updatedAt));
-    const cash = today.filter(o=>!o.remitted).reduce((s,o)=>s+(Number(o.collect)||0)+(o.feeBy==="receiver"?Number(o.fee)||0:0),0);
-    return `<article class="rider">
-      <div class="hd"><div class="avatar">${esc(initials(r.name))}</div>
-        <div style="min-width:0"><h3>${esc(r.name)}</h3><div class="muted" style="font-size:13px">${esc(r.phone)}${r.plate?" · "+esc(r.plate):""}</div></div>
-        <span class="chip ${st.cls}" style="margin-left:auto"><span class="dot"></span>${st.label}</span></div>
-      ${r.example?'<span class="chip ex" style="justify-self:start">Example rider</span>':""}
-      <div class="loc"><span class="eyebrow">Last known location</span><b>${esc(r.location||"Not reported yet")}</b><span class="muted">${r.locationAt?"Updated "+ago(r.locationAt):(r.zone?"Usual zone: "+esc(r.zone):"")}</span></div>
-      <form class="inline" data-locform="${r.id}"><input name="loc" placeholder="Where is the rider now?" aria-label="Rider location"><button class="btn sm" type="submit">Update</button></form>
-      <div class="stats"><span><b>${load.length}</b> on hand</span><span><b>${today.length}</b> delivered today</span><span><b>${naira(cash)}</b> cash to remit</span></div>
-      ${load.length?`<div class="list">${load.map(o=>`<div><button class="btn ghost sm mono" data-open="${o.id}">${esc(o.code)}</button><span class="muted">${o.status==="pickup"?"Pickup: "+esc(o.sender?.name):"To "+esc(o.receiver?.area)}</span></div>`).join("")}</div>`:""}
-      <div class="acts" style="display:flex;gap:6px;flex-wrap:wrap">
-        <button class="btn sm" data-act="toggleDuty" data-rid="${r.id}">${r.offDuty?"Mark on duty":"Mark off duty"}</button>
-        ${cash>0?`<button class="btn sm" data-act="remit" data-rid="${r.id}">Cash received</button>`:""}
-        <button class="btn sm" data-act="copyRider" data-rid="${r.id}">Copy run sheet</button>
-      </div>
-    </article>`;}).join("")
-    : `<div class="panel"><h2>No riders yet</h2><p class="hint" style="margin:0">Add your riders below. You can then assign pickups and deliveries to them and see what each one is carrying.</p></div>`;
-}
-
-function renderOrders(all){
-  const fs=$("#fStatus"), fr=$("#fRider");
-  const sv=fs.value, rv=fr.value;
-  fs.innerHTML = `<option value="">All statuses</option>` + Object.entries(STATUSES).map(([k,v])=>`<option value="${k}">${v.label}</option>`).join(""); fs.value=sv;
-  fr.innerHTML = `<option value="">All riders</option>` + riders().map(r=>`<option value="${r.id}">${esc(r.name)}</option>`).join(""); fr.value=rv;
-  const q=$("#q").value.trim().toLowerCase();
-  const rows = all.filter(o=>(!sv||o.status===sv)&&(!rv||o.riderId===rv)&&(!q||[o.code,o.sender?.name,o.sender?.phone,o.receiver?.name,o.receiver?.phone,o.receiver?.area,o.item].join(" ").toLowerCase().includes(q)))
-    .sort((a,b)=>(b.createdAt||"").localeCompare(a.createdAt||""));
-  $("#orderRows").innerHTML = rows.length ? rows.map(o=>{const st=STATUSES[o.status]||{label:o.status,cls:""}; const r=riderById(o.riderId);
-    return `<tr data-open="${o.id}"><td class="mono">${esc(o.code)}</td><td><span class="chip ${st.cls}">${st.label}</span>${o.example?' <span class="chip ex">Example</span>':""}</td><td>${esc(o.receiver?.name)}<br><span class="muted">${esc(o.receiver?.phone)}</span></td><td>${esc(o.receiver?.area)}</td><td>${esc(o.item)}</td><td class="num">${(Number(o.fee)||0).toLocaleString("en-NG")}</td><td>${r?esc(r.name):"–"}</td><td class="muted">${ago(o.updatedAt)}</td></tr>`;}).join("")
-    : `<tr><td colspan="8" class="muted" style="cursor:default">No orders match.</td></tr>`;
-  const ex = all.filter(o=>o.example).length + riders().filter(r=>r.example).length;
-  $("#exampleTools").innerHTML = ex ? `<button class="btn danger" data-act="clearExamples">Remove the ${ex} example records</button>` : "";
-}
-
-/* ---------- Messages for WhatsApp ---------- */
-function messageFor(o, who){
-  const co = company() || "us"; const st=STATUSES[o.status]?.label || o.status; const r=riderById(o.riderId);
-  const pay = o.collect>0 || o.feeBy==="receiver" ? `\nAmount to pay on delivery: ${naira((Number(o.collect)||0)+(o.feeBy==="receiver"?Number(o.fee)||0:0))}` : "";
-  const link = SITE ? `\nTrack it here: ${SITE}?track=${o.code}` : "";
-  if(who==="receiver") return `Hello ${o.receiver?.name||""}, you have a package from ${o.sender?.name||"a sender"} with ${co}.\nTracking code: ${o.code}\nStatus: ${st}${r&&o.status==="out"?`\nYour rider: ${r.name}, ${r.phone}`:""}${pay}${link}\nThank you!`;
-  return `Hello ${o.sender?.name||""}, thanks for booking with ${co}.\nTracking code: ${o.code}\nTo: ${o.receiver?.name||""}, ${o.receiver?.area||""}\nStatus: ${st}${r?`\nRider: ${r.name}`:""}${link}\nDelivery fee: ${o.fee==null?"to be confirmed":naira(o.fee)}${o.feeBy==="receiver"?" (paid by receiver)":""}`;
 }
 async function copy(text){ try{ await navigator.clipboard.writeText(text); toast("Copied. Paste it into WhatsApp."); }catch(e){ toast("Couldn't copy. Select the text and copy it yourself."); } }
-
-/* ---------- Order detail ---------- */
-let openId=null;
-function openOrder(id){
-  const o = orders().find(x=>x.id===id); if(!o) return; openId=id;
-  const st=STATUSES[o.status]||{label:o.status,cls:""}; const r=riderById(o.riderId);
-  $("#dlgBody").innerHTML = `
-    <div class="hd"><h2 class="mono">${esc(o.code)}</h2><span class="chip ${st.cls}">${st.label}</span><button class="btn sm" data-close>Close</button></div>
-    <dl class="kv">
-      <dt>From</dt><dd>${esc(o.sender?.name)} · ${esc(o.sender?.phone)}${o.sender?.address?"<br>"+esc(o.sender.address):""}</dd>
-      <dt>To</dt><dd>${esc(o.receiver?.name)} · ${esc(o.receiver?.phone)}<br>${esc(o.receiver?.address)}, ${esc(o.receiver?.area)}</dd>
-      <dt>Package</dt><dd>${esc(o.item)} · ${esc(o.size)}</dd>
-      <dt>Fee</dt><dd>${o.fee==null?"Not set yet":naira(o.fee)} · ${o.feeBy==="receiver"?"receiver pays on delivery":"sender pays"}
-        <form class="fee-edit" id="feeForm" style="margin-top:6px"><input id="feeInput" type="number" min="0" step="100" aria-label="Delivery fee in naira" value="${o.fee??""}" placeholder="Set fee ₦"><button class="btn sm" type="submit">Save fee</button></form></dd>
-      ${o.collect>0?`<dt>Collect for seller</dt><dd>${naira(o.collect)}</dd>`:""}
-      <dt>Rider</dt><dd>${r?esc(r.name)+" · "+esc(r.phone):"Not assigned"}</dd>
-      <dt>Deliver by</dt><dd>${esc(o.due||"Today")}</dd>
-      ${o.notes?`<dt>Notes</dt><dd>${esc(o.notes)}</dd>`:""}
-    </dl>
-    <div><span class="eyebrow">History</span><ol class="timeline" style="margin-top:8px">${(o.history||[]).slice().reverse().map(h=>`<li><div><b>${STATUSES[h.status]?.label||esc(h.status)}</b>${h.note?" · "+esc(h.note):""}<br><small>${clock(h.at)}</small></div></li>`).join("")}</ol></div>
-    <div class="seg" role="group" aria-label="Message for"><button type="button" data-msg="sender" aria-pressed="true">Message sender</button><button type="button" data-msg="receiver" aria-pressed="false">Message receiver</button></div>
-    <div class="msg" id="msgText">${esc(messageFor(o,"sender"))}</div>
-    <div class="formacts" style="justify-content:space-between">
-      <span id="delWrap"><button class="btn sm danger" data-act="askDelete">Delete order</button></span>
-      <button class="btn primary" data-act="copyMsg">Copy message</button>
-    </div>`;
-  const d=$("#dlg"); if(!d.open) d.showModal();
+function csvCell(v){ v = v==null ? "" : String(v); return /[",\n\r]/.test(v) ? '"'+v.replace(/"/g,'""')+'"' : v; }
+function downloadCSV(name, rows){
+  const text = "﻿" + rows.map(r=>r.map(csvCell).join(",")).join("\r\n");
+  const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([text],{type:"text/csv"})); a.download=name;
+  document.body.appendChild(a); a.click(); setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 500);
 }
-$("#dlg").addEventListener("click", async e=>{
-  const o = orders().find(x=>x.id===openId);
-  if(e.target===e.currentTarget || e.target.closest("[data-close]")) return $("#dlg").close();
-  const m=e.target.closest("[data-msg]"); if(m&&o){ document.querySelectorAll("#dlg [data-msg]").forEach(b=>b.setAttribute("aria-pressed", b===m)); $("#msgText").textContent=messageFor(o,m.dataset.msg); return; }
-  const a=e.target.closest("[data-act]"); if(!a||!o) return;
-  if(a.dataset.act==="copyMsg") copy($("#msgText").textContent);
-  if(a.dataset.act==="askDelete") $("#delWrap").innerHTML=`Delete ${esc(o.code)}? <button class="btn sm danger" data-act="doDelete">Yes, delete</button> <button class="btn sm" data-act="keep">Keep</button>`;
-  if(a.dataset.act==="keep") openOrder(openId);
-  if(a.dataset.act==="doDelete"){ await Store.remove("orders",o.id); $("#dlg").close(); toast(`Deleted ${o.code}`); }
-});
-
-$("#dlg").addEventListener("submit", async e=>{
-  if(e.target.id!=="feeForm") return; e.preventDefault();
-  const o = orders().find(x=>x.id===openId); if(!o) return;
-  const v = $("#feeInput").value.trim(); if(v==="") return toast("Enter the fee in naira.");
-  await Store.patch("orders", o.id, {fee:Number(v), updatedAt:now()}).catch(()=>{}); toast(`Fee for ${o.code} set to ${naira(v)}`); openOrder(o.id);
-});
-
-/* ---------- Actions ---------- */
-document.addEventListener("click", async e=>{
-  const op=e.target.closest("[data-open]"); if(op && !e.target.closest("dialog")){ openOrder(op.dataset.open); return; }
-  const ci=e.target.closest("[data-checkin]"); if(ci){ $("#checkinCode").value=ci.dataset.checkin; $("#checkinCode").focus(); return; }
-  const a=e.target.closest("[data-act]"); if(!a || e.target.closest("dialog")) return;
-  const act=a.dataset.act; const o=a.dataset.id ? orders().find(x=>x.id===a.dataset.id) : null;
-  const pickRider = () => { const s=document.querySelector(`select[data-rider="${a.dataset.id}"]`); return s && s.value; };
-  try{
-    if(act==="sendPickup"){ const rid=pickRider(); if(!rid) return toast("Choose a rider first."); await moveOrder(o,"pickup",{riderId:rid},"Rider: "+riderById(rid).name); toast(`${riderById(rid).name} is collecting ${o.code}`); }
-    if(act==="receive"){ await moveOrder(o,"at_hub",{riderId:""},"Logged at office"); toast(`${o.code} received at the office`); }
-    if(act==="dispatch"){ const rid=pickRider(); if(!rid) return toast("Choose a rider first."); await moveOrder(o,"out",{riderId:rid},"Rider: "+riderById(rid).name); toast(`${o.code} sent out with ${riderById(rid).name}`); }
-    if(act==="delivered"){ await moveOrder(o,"delivered",{remitted:false}); toast(`${o.code} delivered`); }
-    if(act==="failed"){ await moveOrder(o,"failed",{},"Rider couldn't complete delivery"); toast(`${o.code} marked failed`); }
-    if(act==="rehub"){ await moveOrder(o,"at_hub",{riderId:""},"Back at office for another try"); }
-    if(act==="returned"){ await moveOrder(o,"returned"); }
-    if(act==="toggleDuty"){ const r=riderById(a.dataset.rid); await Store.patch("riders",r.id,{offDuty:!r.offDuty}); }
-    if(act==="remit"){ const rid=a.dataset.rid; for(const x of orders().filter(x=>x.riderId===rid&&x.status==="delivered"&&isToday(x.updatedAt)&&!x.remitted)) await Store.patch("orders",x.id,{remitted:true}); toast("Cash marked as received"); }
-    if(act==="copyRider"){ const r=riderById(a.dataset.rid); const load=riderLoad(r.id);
-      copy(`Run sheet for ${r.name}\n` + (load.length? load.map((x,i)=>`${i+1}. ${x.code} ${x.status==="pickup"?`PICK UP from ${x.sender?.name}, ${x.sender?.phone}, ${x.sender?.address||""}`:`DELIVER to ${x.receiver?.name}, ${x.receiver?.phone}, ${x.receiver?.address}, ${x.receiver?.area}`}${x.collect>0||x.feeBy==="receiver"?` · collect ${naira((Number(x.collect)||0)+(x.feeBy==="receiver"?Number(x.fee)||0:0))}`:""}${x.notes?` · ${x.notes}`:""}`).join("\n") : "Nothing assigned right now.")); }
-    if(act==="clearExamples"){ for(const x of orders().filter(x=>x.example)) await Store.remove("orders",x.id); for(const r of riders().filter(r=>r.example)) await Store.remove("riders",r.id); toast("Example records removed"); }
-  }catch(err){}
-});
-
-document.addEventListener("submit", async e=>{
-  const f=e.target.closest("[data-locform]"); if(!f) return; e.preventDefault();
-  const v=f.loc.value.trim(); if(!v) return;
-  await Store.patch("riders", f.dataset.locform, {location:v, locationAt:now()}).catch(()=>{}); toast("Location updated");
-});
-
-/* Receive order form */
-let arrive="pickup";
-$("#arriveSeg").addEventListener("click", e=>{ const b=e.target.closest("button"); if(!b) return; arrive=b.dataset.v;
-  document.querySelectorAll("#arriveSeg button").forEach(x=>x.setAttribute("aria-pressed", x===b));
-  $("#arriveHint").textContent = arrive==="pickup" ? "The order goes to New bookings until a rider collects it." : "The package goes straight to At our office, ready to send out.";
-  $("#sAddrWrap").hidden = arrive!=="pickup"; });
-$("#orderForm").addEventListener("submit", async e=>{
-  e.preventDefault();
-  if(arrive==="pickup" && !$("#sAddr").value.trim()){ toast("Add the pickup address, or choose \"It's at our office now\"."); $("#sAddr").focus(); return; }
-  let code=newCode(); while(Store.data.orders[code]) code=newCode();
-  const status = arrive==="pickup" ? "booked" : "at_hub";
-  const o = { code, status, createdAt:now(), updatedAt:now(),
-    sender:{name:$("#sName").value.trim(), phone:$("#sPhone").value.trim(), address:arrive==="pickup"?$("#sAddr").value.trim():""},
-    receiver:{name:$("#rName").value.trim(), phone:$("#rPhone").value.trim(), address:$("#rAddr").value.trim(), area:$("#rArea").value.trim()},
-    item:$("#item").value.trim(), size:$("#size").value, fee:Number($("#fee").value)||0, feeBy:$("#feeBy").value, collect:Number($("#cod").value)||0,
-    due:$("#due").value, notes:$("#notes").value.trim(), riderId:"",
-    history:[{status:"booked",at:now(),note:"Order received"}].concat(status==="at_hub"?[{status:"at_hub",at:now(),note:"Dropped off at office"}]:[]) };
-  try{ await Store.set("orders", code, o); }catch(err){ return; }
-  e.target.reset(); toast(`Saved. Tracking code ${code}`);
-  const msg=messageFor({...o,id:code},"sender"); $("#lastSaved").hidden=false; $("#lastSaved").textContent=msg; $("#copyLast").hidden=false;
-});
-$("#copyLast").addEventListener("click", ()=>copy($("#lastSaved").textContent));
-
-/* Receive package */
-$("#checkinForm").addEventListener("submit", async e=>{
-  e.preventDefault(); const code=$("#checkinCode").value.trim().toUpperCase().replace(/^(?!DD-)/,"DD-");
-  const o=orders().find(x=>x.code===code);
-  if(!o) return toast(`No order with code ${code}. Check the code or receive it as a new order.`);
-  if(o.status==="at_hub") return toast(`${code} is already at the office.`);
-  if(!["booked","pickup","failed"].includes(o.status)) return toast(`${code} is ${STATUSES[o.status].label.toLowerCase()}, so it can't be received.`);
-  await moveOrder(o,"at_hub",{riderId:""},"Logged at office").catch(()=>{}); $("#checkinCode").value=""; toast(`${code} received at the office`);
-});
-
-/* Riders */
-$("#riderForm").addEventListener("submit", async e=>{
-  e.preventDefault(); const id="r"+Date.now().toString(36);
-  try{ await Store.set("riders", id, {name:$("#rdName").value.trim(), phone:$("#rdPhone").value.trim(), plate:$("#rdPlate").value.trim(), zone:$("#rdZone").value.trim(), offDuty:false, createdAt:now()}); }catch(err){ return; }
-  e.target.reset(); toast("Rider added");
-});
-
-/* Search + lookup */
-["#q","#fStatus","#fRider"].forEach(s=>$(s).addEventListener("input",()=>renderOrders(orders())));
-$("#lookupForm").addEventListener("submit", e=>{ e.preventDefault();
-  let v=$("#lookupInput").value.trim().toUpperCase(); if(!v) return; if(!v.startsWith("DD-")) v="DD-"+v;
-  const o=orders().find(x=>x.code===v); if(o){ openOrder(o.id); $("#lookupInput").value=""; } else toast(`No order with code ${v}.`); });
-
-/* Company name */
-$("#coName").addEventListener("click", ()=>{
-  $("#dlgBody").innerHTML=`<form class="dlg" id="coForm" style="padding:0"><div class="hd"><h2>Company name</h2></div><label>Shown in messages to customers<input id="coInput" value="${esc(company())}" placeholder="e.g. Swift Dispatch Lagos"></label><div class="formacts"><button type="button" class="btn" data-close>Cancel</button><button class="btn primary" type="submit">Save</button></div></form>`;
-  $("#dlg").showModal(); openId=null;
-  $("#coForm").addEventListener("submit", async ev=>{ ev.preventDefault(); await Store.set("settings","company",{name:$("#coInput").value.trim()}).catch(()=>{}); $("#dlg").close(); });
-});
-
-/* ---------- Customer page ---------- */
-const CUSTOMER_URL = SITE;
-$("#custLinkBtn").addEventListener("click", ()=>copy(CUSTOMER_URL));
-let cArrive="pickup", cMode="book";
-function setCMode(m){ cMode=m;
-  document.querySelectorAll("[data-cmode]").forEach(b=>b.setAttribute("aria-pressed", b.dataset.cmode===m));
-  if(m==="book"){ const done=!!$("#custDone").dataset.code; $("#custForm").hidden=done; $("#custDone").hidden=!done; }
-  else { $("#custForm").hidden=true; $("#custDone").hidden=true; }
-  $("#custTrackForm").hidden = m!=="track";
+function parseCSV(text){
+  text = String(text||"").replace(/^﻿/,"");
+  const first = text.split(/\r?\n/)[0]||"";
+  const d = first.includes("\t") ? "\t" : (first.split(";").length > first.split(",").length ? ";" : ",");
+  const rows=[]; let row=[], cell="", q=false;
+  for(let i=0;i<text.length;i++){
+    const c=text[i];
+    if(q){ if(c==='"'){ if(text[i+1]==='"'){ cell+='"'; i++; } else q=false; } else cell+=c; }
+    else if(c==='"') q=true;
+    else if(c===d){ row.push(cell); cell=""; }
+    else if(c==="\n"||c==="\r"){ if(c==="\r"&&text[i+1]==="\n") i++; row.push(cell); rows.push(row); row=[]; cell=""; }
+    else cell+=c;
+  }
+  if(cell!==""||row.length){ row.push(cell); rows.push(row); }
+  return rows.filter(r=>r.some(c=>String(c).trim()!==""));
 }
-document.querySelectorAll("[data-cmode]").forEach(b=>b.addEventListener("click",()=>setCMode(b.dataset.cmode)));
-$("#cArriveSeg").addEventListener("click", e=>{ const b=e.target.closest("button"); if(!b) return; cArrive=b.dataset.v;
-  document.querySelectorAll("#cArriveSeg button").forEach(x=>x.setAttribute("aria-pressed", x===b));
-  $("#cAddrWrap").hidden = cArrive!=="pickup"; });
-$("#custForm").addEventListener("submit", async e=>{
-  e.preventDefault();
-  if(cArrive==="pickup" && !$("#cAddr").value.trim()){ toast("Add your pickup address, or choose to bring it to our office."); $("#cAddr").focus(); return; }
-  const f = { arrive:cArrive, senderName:$("#cName").value, senderPhone:$("#cPhone").value, senderAddress:$("#cAddr").value,
-    receiverName:$("#crName").value, receiverPhone:$("#crPhone").value, receiverAddress:$("#crAddr").value, area:$("#crArea").value,
-    item:$("#cItem").value, size:$("#cSize").value, feeBy:$("#cFeeBy").value, collect:$("#cCod").value, due:$("#cDue").value, notes:$("#cNotes").value };
-  $("#cSubmit").disabled=true; $("#cSubmit").textContent="Booking…";
-  try{
-    const res = await api("bookOrder", f);
-    e.target.reset(); $("#custDone").dataset.code=res.code; $("#custCode").textContent=res.code; setCMode("book"); window.scrollTo(0,0);
-  }catch(err){ toast(errText(err)); }
-  finally{ $("#cSubmit").disabled=false; $("#cSubmit").textContent="Book delivery"; }
-});
-$("#custCopy").addEventListener("click", ()=>copy($("#custCode").textContent));
-$("#custAgain").addEventListener("click", ()=>{ delete $("#custDone").dataset.code; setCMode("book"); });
-$("#custTrackNow").addEventListener("click", ()=>{ $("#ctCode").value=$("#custCode").textContent; setCMode("track"); renderCustTrack(); });
-$("#custTrackForm").addEventListener("submit", e=>{ e.preventDefault(); renderCustTrack(); });
+function zoneFor(area, zones){
+  const a=String(area||"").toLowerCase().trim(); if(!a) return null;
+  for(const z of zones){ for(const x of (z.areas||[])){ const t=String(x).toLowerCase().trim(); if(t && (a===t || a.includes(t) || t.includes(a))) return z; } }
+  return null;
+}
+function feeHint(el, area, zones){ const z=zoneFor(area, zones); el.textContent = z && z.fee!=null && z.fee!=="" ? `${z.name}: ${naira(z.fee)} delivery` : ""; return z; }
+function fillAreas(listId, zones){ const set=new Set(); zones.forEach(z=>(z.areas||[]).forEach(a=>set.add(String(a).trim()))); $(listId).innerHTML=[...set].filter(Boolean).sort().map(a=>`<option value="${esc(a)}">`).join(""); }
 
-const CSTEPS = [["Booked",["booked","pickup"]],["At our office",["at_hub"]],["On the way",["out"]],["Delivered",["delivered"]]];
-async function renderCustTrack(){
-  const box=$("#ctResult"); let v=$("#ctCode").value.trim().toUpperCase().replace(/\s+/g,"");
-  if(!v){ box.innerHTML=""; return; } if(!v.startsWith("DD-")) v="DD-"+v.replace(/^DD/,"");
-  box.innerHTML = `<p class="hint">Looking it up…</p>`;
-  let o=null; try{ o = await api("trackOrder", v); }catch(err){ box.innerHTML = `<p style="margin:0">${esc(errText(err))}</p>`; return; }
-  if(!o){ box.innerHTML = `<p style="margin:0">We couldn't find <b class="mono">${esc(v)}</b>. Check the code on your booking message and try again.</p>`; return; }
-  const idx = CSTEPS.findIndex(([,ss])=>ss.includes(o.status));
-  const failed = o.status==="failed" || o.status==="returned";
-  const reach = failed ? 2 : idx;
-  const r=o.rider;
-  const headline = {booked:"We've received your booking.",pickup:"A rider is on the way to pick up your package.",at_hub:"Your package is at our office.",out:"Your package is on the way.",delivered:"Your package has been delivered.",failed:"We couldn't deliver your package yet. We'll contact you.",returned:"Your package was returned to the sender."}[o.status]||"";
-  box.innerHTML = `
-    <div style="display:grid;gap:12px">
-      <div class="row" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span class="bigcode" style="font-size:22px">${esc(o.code)}</span><span class="chip ${STATUSES[o.status]?.cls||""}">${STATUSES[o.status]?.label||esc(o.status)}</span></div>
-      <p style="margin:0;font-weight:600">${headline}</p>
-      <div class="steps ${failed?"bad":""}">${CSTEPS.map(([l],i)=>`<div class="${i<=reach?"on":""}"><i></i>${l}</div>`).join("")}</div>
+/* ---------- Dialog + proof of delivery ---------- */
+const dlg = $("#dlg");
+function openDlg(html){ $("#dlgBody").innerHTML = html; if(!dlg.open) dlg.showModal(); }
+dlg.addEventListener("click", e=>{ if(e.target===dlg || e.target.closest("[data-close]")) dlg.close(); });
+
+function shrinkImage(file, max=1000){
+  return new Promise((ok, fail)=>{
+    const img=new Image(), url=URL.createObjectURL(file);
+    img.onload=()=>{ const s=Math.min(1, max/Math.max(img.width,img.height)); const c=document.createElement("canvas");
+      c.width=Math.round(img.width*s); c.height=Math.round(img.height*s); c.getContext("2d").drawImage(img,0,0,c.width,c.height);
+      URL.revokeObjectURL(url); ok(c.toDataURL("image/jpeg",0.72)); };
+    img.onerror=()=>{ URL.revokeObjectURL(url); fail(new Error("That file isn't a photo we can read.")); };
+    img.src=url;
+  });
+}
+function signaturePad(canvas){
+  const ctx=canvas.getContext("2d"); let drawing=false, inked=false, last=null;
+  const fit=()=>{ const r=canvas.getBoundingClientRect(), dpr=window.devicePixelRatio||1; canvas.width=r.width*dpr; canvas.height=r.height*dpr;
+    ctx.setTransform(dpr,0,0,dpr,0,0); ctx.lineWidth=2.2; ctx.lineCap="round"; ctx.lineJoin="round"; ctx.strokeStyle="#111"; ctx.fillStyle="#fff"; ctx.fillRect(0,0,r.width,r.height); inked=false; };
+  const pos=e=>{ const r=canvas.getBoundingClientRect(); return {x:e.clientX-r.left, y:e.clientY-r.top}; };
+  canvas.addEventListener("pointerdown",e=>{ drawing=true; last=pos(e); canvas.setPointerCapture(e.pointerId); });
+  canvas.addEventListener("pointermove",e=>{ if(!drawing) return; const p=pos(e); ctx.beginPath(); ctx.moveTo(last.x,last.y); ctx.lineTo(p.x,p.y); ctx.stroke(); last=p; inked=true; });
+  ["pointerup","pointercancel","pointerleave"].forEach(t=>canvas.addEventListener(t,()=>drawing=false));
+  requestAnimationFrame(fit);
+  return { clear:fit, data:()=> inked ? canvas.toDataURL("image/png") : "" };
+}
+// Opens the proof-of-delivery form; resolves with {receivedBy, signature, photo, note} or null.
+function askPod(o){
+  return new Promise(resolve=>{
+    openDlg(`<form id="podForm" style="display:grid;gap:12px">
+      <div class="hd"><h2>Proof of delivery</h2><button type="button" class="btn sm" data-close>Cancel</button></div>
+      <p class="hint" style="margin:0"><b class="mono">${esc(o.code)}</b> to ${esc(o.receiver?.name)}, ${esc(o.receiver?.area)}${Number(o.collect)>0||o.feeBy==="receiver"?` · collect <b>${naira((Number(o.collect)||0)+(o.feeBy==="receiver"?Number(o.fee)||0:0))}</b>`:""}</p>
+      <label>Received by<input id="podName" required value="${esc(o.receiver?.name||"")}" placeholder="Name of the person who took it"></label>
+      <div><div class="toolrow" style="margin-bottom:6px"><span class="eyebrow grow">Signature</span><button type="button" class="linkish" id="podClear">Clear</button></div><canvas class="sig" id="podSig" aria-label="Signature pad"></canvas></div>
+      <label>Photo of the package at the door (optional)<input type="file" id="podPhoto" accept="image/*" capture="environment"></label>
+      <label>Note (optional)<input id="podNote" placeholder="e.g. Left with security, paid by transfer"></label>
+      <div class="formacts"><button class="btn primary" type="submit" id="podSave">Confirm delivered</button></div>
+    </form>`);
+    const pad=signaturePad($("#podSig")); $("#podClear").onclick=()=>pad.clear();
+    let done=false; const finish=v=>{ if(done) return; done=true; resolve(v); };
+    dlg.addEventListener("close", ()=>finish(null), {once:true});
+    $("#podForm").addEventListener("submit", async e=>{
+      e.preventDefault(); const f=$("#podPhoto").files[0]; let photo="";
+      if(f){ try{ photo=await shrinkImage(f); }catch(err){ toast(errText(err)); return; } }
+      const v={receivedBy:$("#podName").value.trim(), signature:pad.data(), photo, note:$("#podNote").value.trim()};
+      $("#podSave").disabled=true; $("#podSave").textContent="Saving…";
+      finish(v);
+    });
+  });
+}
+function podHTML(p){
+  if(!p) return "";
+  return `<div style="display:grid;gap:8px"><span class="eyebrow">Proof of delivery</span>
+    <div>Received by <b>${esc(p.receivedBy)}</b> · ${clock(p.at)}${p.by?` · ${esc(p.by)}`:""}${p.note?`<br><span class="muted">${esc(p.note)}</span>`:""}</div>
+    ${p.signatureUrl||p.photoUrl?`<div class="podimg">${p.signatureUrl?`<a href="${esc(p.signatureUrl)}" target="_blank" rel="noopener"><img src="${esc(p.signatureUrl)}" alt="Signature"></a>`:""}${p.photoUrl?`<a href="${esc(p.photoUrl)}" target="_blank" rel="noopener"><img src="${esc(p.photoUrl)}" alt="Delivery photo"></a>`:""}</div>`:""}</div>`;
+}
+const timelineHTML = hist => `<ol class="timeline" style="margin-top:8px">${(hist||[]).slice().reverse().map(h=>`<li><div><b>${esc(STATUSES[h.status]?.label||h.status)}</b>${h.note?" · "+esc(h.note):""}<br><small>${clock(h.at)}</small></div></li>`).join("")}</ol>`;
+
+/* ================= STAFF ================= */
+function startStaff(){
+  let PIN = store.get("dd-pin");
+  const S = { data:{orders:{},riders:{},settings:{},zones:{},merchants:{},pickups:{}}, json:"", loaded:false };
+  const orders = () => Object.entries(S.data.orders).map(([id,o])=>({...o,id}));
+  const riders = () => Object.entries(S.data.riders).map(([id,r])=>({...r,id})).sort((a,b)=>(a.name||"").localeCompare(b.name||""));
+  const zones = () => Object.entries(S.data.zones).map(([id,z])=>({...z,id})).sort((a,b)=>(a.name||"").localeCompare(b.name||""));
+  const pickups = () => Object.entries(S.data.pickups).map(([id,p])=>({...p,id}));
+  const merchants = () => Object.entries(S.data.merchants).map(([id,m])=>({...m,id}));
+  const riderById = id => id && S.data.riders[id] ? {...S.data.riders[id], id} : null;
+  const zoneById = id => id && S.data.zones[id] ? {...S.data.zones[id], id} : null;
+  const company = () => S.data.settings.company?.name || "";
+  const lock = on => { document.body.classList.toggle("locked", on); $("#pinView").hidden=!on; if(on) setTimeout(()=>$("#pinInput").focus(),50); };
+
+  async function refresh(force){
+    const d = await api("staffGetAll", PIN); const j=JSON.stringify(d);
+    if(!force && j===S.json) return;
+    const busy = dlg.open || (document.activeElement && /^(SELECT|INPUT|TEXTAREA)$/.test(document.activeElement.tagName));
+    S.json=j; S.data={orders:d.orders||{},riders:d.riders||{},settings:d.settings||{},zones:d.zones||{},merchants:d.merchants||{},pickups:d.pickups||{}}; S.loaded=true;
+    if(!busy || force) render();
+  }
+  async function run(fn, ...args){ try{ const r = await api(fn, PIN, ...args); await refresh(true); return r; }catch(e){ toast(errText(e)); throw e; } }
+  const setDoc = (col,id,obj) => run("staffSetMany", col, {[id]:obj});
+  const patchOrder = (o, part) => setDoc("orders", o.id||o.code, {...S.data.orders[o.id||o.code], ...part});
+  function move(o, status, extra={}, note=""){
+    const cur=S.data.orders[o.id];
+    return setDoc("orders", o.id, {...cur, ...extra, status, updatedAt:now(), history:[...(cur.history||[]), {status, at:now(), note}]});
+  }
+  const riderLoad = rid => orders().filter(o=>o.riderId===rid && (o.status==="out"||o.status==="pickup")).length + pickups().filter(p=>p.riderId===rid && p.status==="assigned").length;
+  const riderState = r => r.offDuty ? {label:"Off duty",cls:""} : riderLoad(r.id) ? {label:"On a run",cls:"info"} : {label:"Available",cls:"ok"};
+  const dueAmt = o => (Number(o.collect)||0) + (o.feeBy==="receiver" ? Number(o.fee)||0 : 0);
+
+  async function init(){
+    if(!PIN){ lock(true); return; }
+    try{ await refresh(true); lock(false); setInterval(()=>refresh().catch(()=>{}), 20000); }
+    catch(e){ PIN=""; store.set("dd-pin",""); lock(true); toast(errText(e)); }
+  }
+  $("#pinForm").addEventListener("submit", async e=>{
+    e.preventDefault(); const v=$("#pinInput").value.trim(); if(!v) return;
+    try{ await api("staffLogin", v); PIN=v; store.set("dd-pin", v); $("#pinInput").value=""; init(); }catch(err){ toast(errText(err)); }
+  });
+
+  const TABS=["board","intake","riders","zones","vendors","orders"];
+  const tab = () => { const h=(location.hash||"#board").slice(1); return TABS.includes(h)?h:"board"; };
+  function showTab(){ const t=tab(); $$("[data-view]").forEach(s=>s.hidden=s.dataset.view!==t); $$("nav.tabs a[data-tab]").forEach(a=>a.dataset.tab===t?a.setAttribute("aria-current","page"):a.removeAttribute("aria-current")); }
+  window.addEventListener("hashchange", showTab); showTab();
+
+  function render(){
+    const all=orders();
+    $("#coName").textContent = company() || "Set your company name";
+    document.title = (company()?company()+" · ":"") + "Dispatch Desk";
+    fillAreas("#areas", zones());
+    renderBoard(all); renderIntake(all); renderRiders(all); renderZones(all); renderVendors(all); renderOrders(all);
+    $("#ctBoard").textContent = all.filter(o=>PENDING.includes(o.status)).length;
+    $("#ctRiders").textContent = riders().length; $("#ctVendors").textContent = merchants().length;
+  }
+
+  /* ---- Board ---- */
+  function riderOpts(sel, zoneId){
+    const rs=riders().filter(x=>!x.offDuty);
+    rs.sort((a,b)=> ((b.zones||[]).includes(zoneId)) - ((a.zones||[]).includes(zoneId)) || riderLoad(a.id)-riderLoad(b.id));
+    return `<option value="">Choose rider…</option>` + rs.map(x=>`<option value="${x.id}" ${x.id===sel?"selected":""}>${esc(x.name)} · ${riderLoad(x.id)} on hand${zoneId&&(x.zones||[]).includes(zoneId)?" · zone":""}</option>`).join("");
+  }
+  function cardHTML(o){
+    const st=STATUSES[o.status]||{label:o.status,cls:""}, r=riderById(o.riderId), z=zoneById(o.zoneId);
+    const money = o.fee==null ? "Fee to confirm"+(o.collect>0?` · collect ${naira(o.collect)}`:"") : dueAmt(o)>0 ? `Collect ${naira(dueAmt(o))}` : "Prepaid";
+    let acts="";
+    if(o.status==="booked") acts=`<select data-rider="${o.id}" aria-label="Rider for pickup">${riderOpts(o.riderId, o.zoneId)}</select><button class="btn sm" data-act="sendPickup" data-id="${o.id}">Send for pickup</button><button class="btn sm" data-act="receive" data-id="${o.id}">Received</button>`;
+    else if(o.status==="pickup") acts=`<button class="btn sm primary" data-act="receive" data-id="${o.id}">Received at office</button>`;
+    else if(o.status==="at_hub") acts=`<select data-rider="${o.id}" aria-label="Rider for delivery">${riderOpts(o.riderId, o.zoneId)}</select><button class="btn sm primary" data-act="dispatch" data-id="${o.id}">Send out</button>`;
+    else if(o.status==="out") acts=`<button class="btn sm primary" data-act="delivered" data-id="${o.id}">Delivered</button><button class="btn sm" data-act="failed" data-id="${o.id}">Failed</button>`;
+    else if(o.status==="failed") acts=`<button class="btn sm" data-act="rehub" data-id="${o.id}">Back at office</button><button class="btn sm" data-act="returned" data-id="${o.id}">Returned</button>`;
+    return `<article class="card" style="--stripe:${STRIPE[st.cls]}">
+      <div class="row"><button class="code mono" data-open="${o.id}">${esc(o.code)}</button>${chip(o.status)}${o.merchantName?`<span class="chip">${esc(o.merchantName)}</span>`:o.source==="customer"?'<span class="chip">Booked online</span>':""}</div>
+      <div class="to">${esc(o.receiver?.name)} · ${esc(o.receiver?.area)}${z?` <span class="muted" style="font-weight:500">(${esc(z.name)})</span>`:""}</div>
+      <div class="meta">${esc(o.item)}${o.due&&o.due!=="Today"?" · by "+esc(o.due.toLowerCase()):""}</div>
+      <div class="meta">${money}${r?` · <b style="color:var(--ink)">${esc(r.name)}</b>`:""}</div>
+      ${acts?`<div class="acts">${acts}</div>`:""}
+    </article>`;
+  }
+  function pickupCardHTML(p){
+    const r=riderById(p.riderId);
+    const acts = p.status==="requested"
+      ? `<select data-prider="${p.id}" aria-label="Rider for vendor pickup">${riderOpts("", p.zoneId)}</select><button class="btn sm primary" data-act="assignPickup" data-id="${p.id}">Assign</button>`
+      : `<button class="btn sm primary" data-act="collectPickup" data-id="${p.id}">Received at office</button>`;
+    return `<article class="card pk" style="--stripe:var(--accent)">
+      <div class="row"><span class="chip acc">Vendor pickup</span><span class="chip ${p.status==="assigned"?"info":"warn"}">${p.status==="assigned"?"Rider assigned":"Needs a rider"}</span></div>
+      <div class="big">${esc(p.merchantName)} · ${p.count} package${p.count==1?"":"s"}</div>
+      <div class="meta">${esc(p.date)} · ${esc(p.window)}<br>${esc(p.address)}${p.notes?`<br>${esc(p.notes)}`:""}</div>
+      <div class="meta">${esc(p.phone)}${r?` · <b style="color:var(--ink)">${esc(r.name)}</b>`:""}</div>
+      <div class="acts">${acts}</div></article>`;
+  }
+  const LANES=[{id:"new",title:"New bookings",hint:"Orders and vendor pickups waiting for a rider."},{id:"hub",title:"At our office",hint:"Packages ready to send out."},{id:"out",title:"Out for delivery",hint:"With a rider on the road."},{id:"done",title:"Finished today",hint:"Delivered, failed or returned today."}];
+  function renderBoard(all){
+    const active = all.filter(o=>STATUSES[o.status] && (STATUSES[o.status].lane!=="done" || isToday(o.updatedAt)) && o.status!=="cancelled");
+    const inPickup = new Set(pickups().filter(p=>p.status!=="collected"&&p.status!=="cancelled").flatMap(p=>p.codes||[]));
+    const openPickups = pickups().filter(p=>p.status==="requested"||p.status==="assigned");
+    const doneToday = all.filter(o=>o.status==="delivered" && isToday(o.updatedAt));
+    const cash = doneToday.filter(o=>!o.remitted).reduce((s,o)=>s+dueAmt(o),0);
+    const assigned = all.filter(o=>o.status==="at_hub" && o.riderId);
+    $("#sendAll").textContent = `Send out all assigned (${assigned.length})`; $("#sendAll").disabled=!assigned.length;
+    $("#kpis").innerHTML = [
+      [all.filter(o=>o.status==="booked"||o.status==="pickup").length,"waiting for pickup"],
+      [openPickups.length,"vendor pickups open"],
+      [all.filter(o=>o.status==="at_hub").length,"at the office"],
+      [all.filter(o=>o.status==="out").length,"out for delivery"],
+      [doneToday.length,"delivered today"],
+      [naira(cash),"cash riders should bring in"],
+    ].map(([b,s])=>`<div class="kpi"><b>${b}</b><span>${s}</span></div>`).join("");
+    $("#board").innerHTML = LANES.map(l=>{
+      let items = active.filter(o=>STATUSES[o.status].lane===l.id && !(l.id==="new" && inPickup.has(o.code)));
+      items.sort((a,b)=>(b.updatedAt||"").localeCompare(a.updatedAt||""));
+      const extra = l.id==="new" ? openPickups.map(pickupCardHTML).join("") : "";
+      const cap = 60, more = items.length>cap ? `<div class="empty">${items.length-cap} more in <a href="#orders">All orders</a></div>` : "";
+      const n = items.length + (l.id==="new"?openPickups.length:0);
+      return `<section class="lane"><header><h2>${l.title}</h2><span class="n num">${n}</span></header>
+        ${extra}${items.length? items.slice(0,cap).map(cardHTML).join("")+more : (extra?"":`<div class="empty">${l.hint}</div>`)}</section>`;
+    }).join("");
+  }
+  $("#autoAssign").addEventListener("click", async ()=>{
+    $("#autoAssign").disabled=true;
+    try{ const n=await run("staffAutoAssign"); toast(`Assigned ${n.deliveries} deliveries, ${n.pickups} customer pickups and ${n.vendorPickups} vendor pickups.`); }catch(e){}
+    $("#autoAssign").disabled=false;
+  });
+  $("#sendAll").addEventListener("click", async ()=>{
+    const list=orders().filter(o=>o.status==="at_hub" && o.riderId); if(!list.length) return;
+    const docs={}; list.forEach(o=>{ const cur=S.data.orders[o.id]; docs[o.id]={...cur, status:"out", updatedAt:now(), history:[...(cur.history||[]),{status:"out",at:now(),note:"Rider: "+(riderById(o.riderId)?.name||"")}]}; });
+    try{ await run("staffSetMany","orders",docs); toast(`Sent out ${list.length} orders`); }catch(e){}
+  });
+
+  /* ---- Messages ---- */
+  function messageFor(o, who){
+    const co=company()||"us", st=STATUSES[o.status]?.label||o.status, r=riderById(o.riderId);
+    const pay = dueAmt(o)>0 ? `\nAmount to pay on delivery: ${naira(dueAmt(o))}` : "";
+    const link = `\nTrack it here: ${SITE}?track=${o.code}`;
+    if(who==="receiver") return `Hello ${o.receiver?.name||""}, you have a package from ${o.sender?.name||"a sender"} with ${co}.\nTracking code: ${o.code}\nStatus: ${st}${r&&o.status==="out"?`\nYour rider: ${r.name}, ${r.phone}`:""}${pay}${link}\nThank you!`;
+    return `Hello ${o.sender?.name||""}, thanks for booking with ${co}.\nTracking code: ${o.code}\nTo: ${o.receiver?.name||""}, ${o.receiver?.area||""}\nStatus: ${st}${r?`\nRider: ${r.name}`:""}${link}\nDelivery fee: ${o.fee==null?"to be confirmed":naira(o.fee)}${o.feeBy==="receiver"?" (paid by receiver)":""}`;
+  }
+
+  /* ---- Order detail ---- */
+  let openId=null;
+  function openOrder(id){
+    const o=orders().find(x=>x.id===id); if(!o) return; openId=id;
+    const r=riderById(o.riderId), z=zoneById(o.zoneId);
+    openDlg(`<div class="hd"><h2 class="mono">${esc(o.code)}</h2>${chip(o.status)}<button class="btn sm" data-close>Close</button></div>
       <dl class="kv">
-        <dt>Going to</dt><dd>${esc(o.receiver?.name)}, ${esc(o.receiver?.area)}</dd>
-        <dt>Package</dt><dd>${esc(o.item)}</dd>
-        <dt>Delivery fee</dt><dd>${o.fee==null?"We'll confirm it with you":naira(o.fee)+(o.feeBy==="receiver"?", paid by receiver":"")}</dd>
-        ${r?`<dt>Your rider</dt><dd>${esc(r.name)} · ${esc(r.phone)}</dd>`:""}
+        ${o.merchantName?`<dt>Vendor</dt><dd>${esc(o.merchantName)}${o.ref?` · ref ${esc(o.ref)}`:""}</dd>`:""}
+        <dt>From</dt><dd>${esc(o.sender?.name)} · ${esc(o.sender?.phone)}${o.sender?.address?"<br>"+esc(o.sender.address):""}</dd>
+        <dt>To</dt><dd>${esc(o.receiver?.name)} · ${esc(o.receiver?.phone)}<br>${esc(o.receiver?.address)}, ${esc(o.receiver?.area)}</dd>
+        <dt>Zone</dt><dd>${z?esc(z.name):"No zone matched"}</dd>
+        <dt>Package</dt><dd>${esc(o.item)} · ${esc(o.size)}</dd>
+        <dt>Fee</dt><dd>${o.fee==null?"Not set yet":naira(o.fee)} · ${o.feeBy==="receiver"?"receiver pays on delivery":"sender pays"}
+          <form class="fee-edit" id="feeForm" style="margin-top:6px"><input id="feeInput" type="number" min="0" step="100" aria-label="Delivery fee in naira" value="${o.fee??""}" placeholder="Set fee ₦"><button class="btn sm" type="submit">Save fee</button></form></dd>
+        ${o.collect>0?`<dt>Collect for seller</dt><dd>${naira(o.collect)}</dd>`:""}
+        <dt>Rider</dt><dd>${r?esc(r.name)+" · "+esc(r.phone):"Not assigned"}</dd>
+        ${o.notes?`<dt>Notes</dt><dd>${esc(o.notes)}</dd>`:""}
       </dl>
-      <div><span class="eyebrow">Updates</span><ol class="timeline" style="margin-top:8px">${(o.history||[]).slice().reverse().map(h=>`<li><div><b>${STATUSES[h.status]?.label||esc(h.status)}</b><br><small>${clock(h.at)}</small></div></li>`).join("")}</ol></div>
-    </div>`;
+      ${podHTML(o.pod)}
+      <div><span class="eyebrow">History</span>${timelineHTML(o.history)}</div>
+      <div class="seg" role="group" aria-label="Message for"><button type="button" data-msg="sender" aria-pressed="true">Message sender</button><button type="button" data-msg="receiver" aria-pressed="false">Message receiver</button></div>
+      <div class="msg" id="msgText">${esc(messageFor(o,"sender"))}</div>
+      <div class="formacts" style="justify-content:space-between"><span id="delWrap"><button class="btn sm danger" data-dact="askDelete">Delete order</button></span><button class="btn primary" data-dact="copyMsg">Copy message</button></div>`);
+  }
+  dlg.addEventListener("click", async e=>{
+    if(MODE!=="staff") return;
+    const o=orders().find(x=>x.id===openId);
+    const m=e.target.closest("[data-msg]"); if(m&&o){ $$("#dlg [data-msg]").forEach(b=>b.setAttribute("aria-pressed", b===m)); $("#msgText").textContent=messageFor(o,m.dataset.msg); return; }
+    const a=e.target.closest("[data-dact]"); if(!a||!o) return;
+    if(a.dataset.dact==="copyMsg") copy($("#msgText").textContent);
+    if(a.dataset.dact==="askDelete") $("#delWrap").innerHTML=`Delete ${esc(o.code)}? <button class="btn sm danger" data-dact="doDelete">Yes, delete</button> <button class="btn sm" data-dact="keep">Keep</button>`;
+    if(a.dataset.dact==="keep") openOrder(openId);
+    if(a.dataset.dact==="doDelete"){ try{ await run("staffDelete","orders",o.id); dlg.close(); toast(`Deleted ${o.code}`); }catch(e){} }
+  });
+  dlg.addEventListener("submit", async e=>{
+    if(MODE!=="staff" || e.target.id!=="feeForm") return; e.preventDefault();
+    const o=orders().find(x=>x.id===openId); const v=$("#feeInput").value.trim(); if(!o) return; if(v==="") return toast("Enter the fee in naira.");
+    try{ await patchOrder(o,{fee:Number(v),updatedAt:now()}); toast(`Fee for ${o.code} set to ${naira(v)}`); openOrder(o.id); }catch(err){}
+  });
+
+  /* ---- Board actions ---- */
+  document.addEventListener("click", async e=>{
+    const op=e.target.closest("[data-open]"); if(op && !e.target.closest("dialog")){ openOrder(op.dataset.open); return; }
+    const ci=e.target.closest("[data-checkin]"); if(ci){ $("#checkinCode").value=ci.dataset.checkin; $("#checkinCode").focus(); return; }
+    const a=e.target.closest("[data-act]"); if(!a || e.target.closest("dialog")) return;
+    const act=a.dataset.act, id=a.dataset.id, o=id?orders().find(x=>x.id===id):null;
+    const pick = () => { const s=document.querySelector(`select[data-rider="${id}"]`); return s && s.value; };
+    a.disabled=true;
+    try{
+      if(act==="sendPickup"){ const rid=pick(); if(!rid) return toast("Choose a rider first."); await move(o,"pickup",{riderId:rid},"Rider: "+riderById(rid).name); }
+      if(act==="receive"){ await move(o,"at_hub",{riderId:""},"Logged at office"); toast(`${o.code} received at the office`); }
+      if(act==="dispatch"){ const rid=pick(); if(!rid) return toast("Choose a rider first."); await move(o,"out",{riderId:rid},"Rider: "+riderById(rid).name); toast(`${o.code} sent out with ${riderById(rid).name}`); }
+      if(act==="delivered"){ const pod=await askPod(o); if(!pod) return; try{ await run("staffPod", o.id, pod); dlg.close(); toast(`${o.code} delivered`); }catch(err){ dlg.close(); } }
+      if(act==="failed"){ await move(o,"failed",{},"Rider couldn't complete delivery"); }
+      if(act==="rehub"){ await move(o,"at_hub",{riderId:""},"Back at office for another try"); }
+      if(act==="returned"){ await move(o,"returned"); }
+      if(act==="assignPickup"){ const s=document.querySelector(`select[data-prider="${id}"]`); if(!s||!s.value) return toast("Choose a rider first."); await run("staffAssignPickup", id, s.value); toast("Rider assigned to the vendor pickup"); }
+      if(act==="collectPickup"){ await run("staffCollectPickup", id, 0); toast("Vendor packages logged at the office"); }
+      if(act==="toggleDuty"){ const r=riderById(a.dataset.rid); await setDoc("riders",r.id,{...S.data.riders[r.id], offDuty:!r.offDuty}); }
+      if(act==="remit"){ const docs={}; orders().filter(x=>x.riderId===a.dataset.rid&&x.status==="delivered"&&isToday(x.updatedAt)&&!x.remitted).forEach(x=>docs[x.id]={...S.data.orders[x.id],remitted:true}); await run("staffSetMany","orders",docs); toast("Cash marked as received"); }
+      if(act==="riderZones") editRider(a.dataset.rid);
+      if(act==="copyRider"){ const r=riderById(a.dataset.rid); const load=orders().filter(x=>x.riderId===r.id && (x.status==="out"||x.status==="pickup"||x.status==="at_hub"));
+        copy(`Run sheet for ${r.name}\nRider page: ${SITE}?rider=1\n` + (load.length? load.map((x,i)=>`${i+1}. ${x.code} ${x.status==="pickup"?`PICK UP from ${x.sender?.name}, ${x.sender?.phone}, ${x.sender?.address||""}`:`DELIVER to ${x.receiver?.name}, ${x.receiver?.phone}, ${x.receiver?.address}, ${x.receiver?.area}`}${dueAmt(x)>0?` · collect ${naira(dueAmt(x))}`:""}${x.notes?` · ${x.notes}`:""}`).join("\n") : "Nothing assigned right now.")); }
+      if(act==="vendorActive"){ const m=S.data.merchants[a.dataset.mid]; await setDoc("merchants", a.dataset.mid, {...m, active:!(m.active!==false)}); }
+      if(act==="vendorOrders"){ $("#fVendor").value=a.dataset.mid; location.hash="#orders"; renderOrders(orders()); }
+      if(act==="zoneSave"){ const row=a.closest(".zonerow"); const zid=row.dataset.zid;
+        const areas=row.querySelector("[data-f=areas]").value.split(",").map(s=>s.trim()).filter(Boolean);
+        await setDoc("zones", zid, {name:row.querySelector("[data-f=name]").value.trim(), areas, fee:Number(row.querySelector("[data-f=fee]").value)||0}); toast("Zone saved"); }
+      if(act==="zoneDelete"){ await run("staffDelete","zones",a.closest(".zonerow").dataset.zid); toast("Zone deleted"); }
+      if(act==="applyZones"){ const zs=zones(), docs={}; orders().filter(x=>PENDING.includes(x.status)).forEach(x=>{ const z=zoneFor(x.receiver?.area, zs); const zid=z?z.id:""; if(zid!==x.zoneId || (z && x.fee==null)){ docs[x.id]={...S.data.orders[x.id], zoneId:zid, fee: x.fee==null && z ? Number(z.fee) : x.fee}; } });
+        if(Object.keys(docs).length) await run("staffSetMany","orders",docs); toast(`Updated ${Object.keys(docs).length} open orders`); }
+    }catch(err){} finally{ a.disabled=false; }
+  });
+  document.addEventListener("submit", async e=>{
+    const f=e.target.closest("[data-locform]"); if(!f) return; e.preventDefault();
+    const v=f.loc.value.trim(); if(!v) return; const r=S.data.riders[f.dataset.locform];
+    try{ await setDoc("riders", f.dataset.locform, {...r, location:v, locationAt:now()}); toast("Location updated"); }catch(err){}
+  });
+  document.addEventListener("submit", async e=>{
+    const f=e.target.closest("[data-pinform]"); if(!f) return; e.preventDefault();
+    try{ await run("staffSetRiderPin", f.dataset.pinform, f.pin.value.trim()); toast("Rider PIN saved"); }catch(err){}
+  });
+
+  /* ---- Intake ---- */
+  let arrive="pickup";
+  $("#arriveSeg").addEventListener("click", e=>{ const b=e.target.closest("button"); if(!b) return; arrive=b.dataset.v; $$("#arriveSeg button").forEach(x=>x.setAttribute("aria-pressed", x===b)); $("#sAddrWrap").hidden = arrive!=="pickup"; });
+  $("#rArea").addEventListener("input", ()=>{ const z=feeHint($("#sFeeEst"), $("#rArea").value, zones()); $("#fee").placeholder = z ? String(z.fee) : "From zone"; });
+  $("#orderForm").addEventListener("submit", async e=>{
+    e.preventDefault();
+    if(arrive==="pickup" && !$("#sAddr").value.trim()){ toast("Add the pickup address, or choose \"It's at our office now\"."); return; }
+    let code=newCode(); while(S.data.orders[code]) code=newCode();
+    const z=zoneFor($("#rArea").value, zones()), t=now(), status = arrive==="pickup" ? "booked" : "at_hub";
+    const feeIn=$("#fee").value.trim();
+    const o = { code, status, source:"staff", createdAt:t, updatedAt:t,
+      sender:{name:$("#sName").value.trim(), phone:$("#sPhone").value.trim(), address:arrive==="pickup"?$("#sAddr").value.trim():""},
+      receiver:{name:$("#rName").value.trim(), phone:$("#rPhone").value.trim(), address:$("#rAddr").value.trim(), area:$("#rArea").value.trim()},
+      zoneId:z?z.id:"", item:$("#item").value.trim(), size:$("#size").value, fee: feeIn!=="" ? Number(feeIn) : (z?Number(z.fee):null),
+      feeBy:$("#feeBy").value, collect:Number($("#cod").value)||0, due:$("#due").value, notes:$("#notes").value.trim(), riderId:"",
+      history:[{status:"booked",at:t,note:"Order received"}].concat(status==="at_hub"?[{status:"at_hub",at:t,note:"Dropped off at office"}]:[]) };
+    try{ await setDoc("orders", code, o); }catch(err){ return; }
+    e.target.reset(); $("#sFeeEst").textContent=""; toast(`Saved. Tracking code ${code}`);
+    $("#lastSaved").textContent=messageFor({...o,id:code},"sender"); $("#copyLast").hidden=false;
+  });
+  $("#copyLast").addEventListener("click", ()=>copy($("#lastSaved").textContent));
+  $("#checkinForm").addEventListener("submit", async e=>{
+    e.preventDefault(); const code=normCode($("#checkinCode").value); const o=orders().find(x=>x.code===code);
+    if(!o) return toast(`No order with code ${code}.`);
+    if(o.status==="at_hub") return toast(`${code} is already at the office.`);
+    if(!["booked","pickup","failed"].includes(o.status)) return toast(`${code} is ${STATUSES[o.status].label.toLowerCase()}, so it can't be received.`);
+    try{ await move(o,"at_hub",{riderId:""},"Logged at office"); $("#checkinCode").value=""; toast(`${code} received at the office`); }catch(err){}
+  });
+  function renderIntake(all){
+    const waiting=all.filter(o=>o.status==="booked"||o.status==="pickup").slice(0,40);
+    $("#awaiting").innerHTML = waiting.length ? `<span class="eyebrow">Expected at the office</span>` + waiting.map(o=>{ const r=riderById(o.riderId);
+      return `<div><span><button class="btn ghost sm mono" data-checkin="${o.code}">${esc(o.code)}</button> ${esc(o.merchantName||o.sender?.name)}</span><span class="muted">${r?esc(r.name):"no rider yet"}</span></div>`; }).join("") : `<span class="hint">Nothing waiting to come in.</span>`;
+  }
+
+  /* ---- Riders ---- */
+  const zoneChecks = sel => zones().map(z=>`<label><input type="checkbox" value="${z.id}" ${sel.includes(z.id)?"checked":""}> ${esc(z.name)}</label>`).join("") || `<span class="hint">Add zones on the Zones tab first.</span>`;
+  function renderRiders(all){
+    const rs=riders();
+    $("#riderKpis").innerHTML=[[rs.length,"riders"],[rs.filter(r=>riderState(r).label==="Available").length,"available now"],[rs.filter(r=>riderState(r).label==="On a run").length,"on a run"],[rs.filter(r=>r.offDuty).length,"off duty"]].map(([b,s])=>`<div class="kpi"><b>${b}</b><span>${s}</span></div>`).join("");
+    if(!document.activeElement || !$("#rdZones").contains(document.activeElement)){ const sel=$$("#rdZones input:checked").map(i=>i.value); $("#rdZones").innerHTML=zoneChecks(sel); }
+    $("#riderGrid").innerHTML = rs.length ? rs.map(r=>{
+      const st=riderState(r), load=all.filter(o=>o.riderId===r.id && (o.status==="out"||o.status==="pickup"));
+      const pks=pickups().filter(p=>p.riderId===r.id && p.status==="assigned");
+      const today=all.filter(o=>o.riderId===r.id && o.status==="delivered" && isToday(o.updatedAt));
+      const cash=today.filter(o=>!o.remitted).reduce((s,o)=>s+dueAmt(o),0);
+      const zn=(r.zones||[]).map(id=>zoneById(id)?.name).filter(Boolean);
+      return `<article class="rider">
+        <div class="hd"><div class="avatar">${esc(initials(r.name))}</div><div style="min-width:0"><h3>${esc(r.name)}</h3><div class="muted" style="font-size:13px">${esc(r.phone)}${r.plate?" · "+esc(r.plate):""}</div></div>
+          <span class="chip ${st.cls}" style="margin-left:auto"><span class="dot"></span>${st.label}</span></div>
+        <div class="checks">${zn.length?zn.map(n=>`<span class="chip">${esc(n)}</span>`).join(""):'<span class="chip">All zones</span>'}<button class="linkish" data-act="riderZones" data-rid="${r.id}">Edit</button></div>
+        <div class="loc"><span class="eyebrow">Last known location</span><b>${esc(r.location||"Not reported yet")}</b><span class="muted">${r.locationAt?"Updated "+ago(r.locationAt):""}</span></div>
+        <form class="inline" data-locform="${r.id}"><input name="loc" placeholder="Where is the rider now?" aria-label="Rider location"><button class="btn sm" type="submit">Update</button></form>
+        <div class="stats"><span><b>${load.length}</b> parcels on hand</span>${pks.length?`<span><b>${pks.length}</b> vendor pickups</span>`:""}<span><b>${today.length}</b> delivered today</span><span><b>${naira(cash)}</b> cash to remit</span></div>
+        <form class="inline" data-pinform="${r.id}"><input name="pin" inputmode="numeric" placeholder="${r.hasPin?"Change rider PIN":"Set rider PIN (4–6 digits)"}" aria-label="Rider PIN"><button class="btn sm" type="submit">${r.hasPin?"Change PIN":"Set PIN"}</button></form>
+        <div class="acts" style="display:flex;gap:6px;flex-wrap:wrap">
+          <button class="btn sm" data-act="toggleDuty" data-rid="${r.id}">${r.offDuty?"Mark on duty":"Mark off duty"}</button>
+          ${cash>0?`<button class="btn sm" data-act="remit" data-rid="${r.id}">Cash received</button>`:""}
+          <button class="btn sm" data-act="copyRider" data-rid="${r.id}">Copy run sheet</button>
+        </div></article>`; }).join("")
+      : `<div class="panel"><h2>No riders yet</h2><p class="hint" style="margin:0">Add your riders below. Give each one a PIN so they can use the rider page.</p></div>`;
+  }
+  function editRider(rid){
+    const r=riderById(rid);
+    openDlg(`<form id="rzForm" style="display:grid;gap:12px"><div class="hd"><h2>${esc(r.name)}</h2><button type="button" class="btn sm" data-close>Cancel</button></div>
+      <div class="fields"><label>Phone<input id="ezPhone" value="${esc(r.phone)}"></label><label>Bike plate<input id="ezPlate" value="${esc(r.plate||"")}"></label></div>
+      <div><span class="eyebrow">Zones this rider covers</span><div class="checks" id="ezZones" style="margin-top:6px">${zoneChecks(r.zones||[])}</div><p class="hint">No zones ticked means the rider can take any zone.</p></div>
+      <div class="formacts" style="justify-content:space-between"><button type="button" class="btn sm danger" id="ezDel">Remove rider</button><button class="btn primary" type="submit">Save</button></div></form>`);
+    $("#rzForm").addEventListener("submit", async e=>{ e.preventDefault();
+      try{ await setDoc("riders", rid, {...S.data.riders[rid], phone:$("#ezPhone").value.trim(), plate:$("#ezPlate").value.trim(), zones:$$("#ezZones input:checked").map(i=>i.value)}); dlg.close(); toast("Rider saved"); }catch(err){} });
+    $("#ezDel").addEventListener("click", async ()=>{ if($("#ezDel").dataset.sure){ try{ await run("staffDelete","riders",rid); dlg.close(); toast("Rider removed"); }catch(err){} } else { $("#ezDel").dataset.sure="1"; $("#ezDel").textContent="Tap again to remove"; } });
+  }
+  $("#riderForm").addEventListener("submit", async e=>{
+    e.preventDefault(); const id="r"+Date.now().toString(36), pin=$("#rdPin").value.trim();
+    if(pin && !/^\d{4,6}$/.test(pin)) return toast("A rider PIN must be 4 to 6 digits.");
+    try{ await setDoc("riders", id, {name:$("#rdName").value.trim(), phone:$("#rdPhone").value.trim(), plate:$("#rdPlate").value.trim(), zones:$$("#rdZones input:checked").map(i=>i.value), offDuty:false, createdAt:now()});
+      if(pin) await run("staffSetRiderPin", id, pin); }catch(err){ return; }
+    e.target.reset(); $$("#rdZones input").forEach(i=>i.checked=false); toast("Rider added");
+  });
+
+  /* ---- Zones ---- */
+  function renderZones(all){
+    if($("#zoneList").contains(document.activeElement)) return;
+    const zs=zones();
+    $("#zoneList").innerHTML = zs.length ? zs.map(z=>`<div class="zonerow" data-zid="${z.id}">
+      <label>Zone<input data-f="name" value="${esc(z.name)}"></label>
+      <label>Areas<input data-f="areas" value="${esc((z.areas||[]).join(", "))}"></label>
+      <label>Fee ₦<input data-f="fee" type="number" min="0" step="100" value="${esc(z.fee)}"></label>
+      <div style="display:flex;gap:6px"><button class="btn sm" data-act="zoneSave">Save</button><button class="btn sm danger" data-act="zoneDelete">Delete</button></div></div>`).join("")
+      : `<p class="hint">No zones yet. Add your first zone on the right, for example "Mainland" or "Lekki – Ajah".</p>`;
+    const open=all.filter(o=>PENDING.includes(o.status)), un=open.filter(o=>!zoneFor(o.receiver?.area, zs));
+    $("#unzoned").innerHTML = zs.length ? `${un.length} open order${un.length==1?"":"s"} don't match any zone${un.length?": "+[...new Set(un.map(o=>o.receiver?.area))].slice(0,8).map(esc).join(", "):""}. <button type="button" class="linkish" data-act="applyZones">Re-match open orders to zones</button>` : "";
+  }
+  $("#zoneForm").addEventListener("submit", async e=>{
+    e.preventDefault(); const id="z"+Date.now().toString(36);
+    try{ await setDoc("zones", id, {name:$("#zName").value.trim(), areas:$("#zAreas").value.split(",").map(s=>s.trim()).filter(Boolean), fee:Number($("#zFee").value)||0}); }catch(err){ return; }
+    e.target.reset(); toast("Zone added");
+  });
+
+  /* ---- Vendors ---- */
+  function renderVendors(all){
+    const ms=merchants().sort((a,b)=>(b.createdAt||"").localeCompare(a.createdAt||""));
+    $("#vendorRows").innerHTML = ms.length ? ms.map(m=>{ const mine=all.filter(o=>o.merchantId===m.id);
+      return `<tr><td><button class="linkish" data-act="vendorOrders" data-mid="${m.id}">${esc(m.business)}</button><br><span class="muted">${esc(m.area)}</span></td><td>${esc(m.contact)}<br><span class="muted">${esc(m.phone)}</span></td>
+        <td class="num">${mine.length}</td><td class="num">${mine.filter(o=>PENDING.includes(o.status)).length}</td><td class="num">${mine.filter(o=>o.status==="delivered").length}</td><td class="num">${mine.filter(o=>o.status==="failed"||o.status==="returned").length}</td>
+        <td class="muted">${m.createdAt?new Date(m.createdAt).toLocaleDateString("en-NG"):""}</td><td><button class="btn sm" data-act="vendorActive" data-mid="${m.id}">${m.active===false?"Paused · resume":"Active · pause"}</button></td></tr>`; }).join("")
+      : `<tr><td colspan="8" class="muted">No vendor accounts yet.</td></tr>`;
+  }
+
+  /* ---- All orders ---- */
+  function filtered(all){
+    const sv=$("#fStatus").value, rv=$("#fRider").value, vv=$("#fVendor").value, from=$("#fFrom").value, to=$("#fTo").value, q=$("#q").value.trim().toLowerCase();
+    return all.filter(o=>(!sv||o.status===sv)&&(!rv||o.riderId===rv)&&(!vv||o.merchantId===vv)
+      &&(!from||dayKey(o.createdAt)>=from)&&(!to||dayKey(o.createdAt)<=to)
+      &&(!q||[o.code,o.ref,o.sender?.name,o.sender?.phone,o.receiver?.name,o.receiver?.phone,o.receiver?.area,o.item,o.merchantName].join(" ").toLowerCase().includes(q)))
+      .sort((a,b)=>(b.createdAt||"").localeCompare(a.createdAt||""));
+  }
+  function renderOrders(all){
+    const keep=(id,html)=>{ const el=$(id), v=el.value; el.innerHTML=html; el.value=v; };
+    keep("#fStatus", `<option value="">All statuses</option>`+Object.entries(STATUSES).map(([k,v])=>`<option value="${k}">${v.label}</option>`).join(""));
+    keep("#fRider", `<option value="">All riders</option>`+riders().map(r=>`<option value="${r.id}">${esc(r.name)}</option>`).join(""));
+    keep("#fVendor", `<option value="">All vendors</option>`+merchants().map(m=>`<option value="${m.id}">${esc(m.business)}</option>`).join(""));
+    const rows=filtered(all);
+    $("#orderRows").innerHTML = rows.length ? rows.slice(0,400).map(o=>{ const r=riderById(o.riderId), z=zoneById(o.zoneId);
+      return `<tr data-open="${o.id}"><td class="mono">${esc(o.code)}</td><td>${chip(o.status)}</td><td>${esc(o.merchantName||"")}${o.ref?`<br><span class="muted">${esc(o.ref)}</span>`:""}</td><td>${esc(o.receiver?.name)}<br><span class="muted">${esc(o.receiver?.phone)}</span></td><td>${esc(o.receiver?.area)}${z?`<br><span class="muted">${esc(z.name)}</span>`:""}</td><td>${esc(o.item)}</td><td class="num">${o.fee==null?"–":(Number(o.fee)||0).toLocaleString("en-NG")}</td><td>${r?esc(r.name):"–"}</td><td class="muted">${ago(o.updatedAt)}</td></tr>`; }).join("")
+      + (rows.length>400?`<tr><td colspan="9" class="muted">Showing 400 of ${rows.length}. Download the CSV for all of them.</td></tr>`:"")
+      : `<tr><td colspan="9" class="muted" style="cursor:default">No orders match.</td></tr>`;
+  }
+  ["#q","#fStatus","#fRider","#fVendor","#fFrom","#fTo"].forEach(s=>$(s).addEventListener("input",()=>renderOrders(orders())));
+  $("#ordersCsv").addEventListener("click", ()=>{
+    const rows=filtered(orders());
+    downloadCSV(`orders-${dayKey(Date.now())}.csv`, [["Code","Status","Vendor","Vendor ref","Booked","Sender","Sender phone","Receiver","Receiver phone","Address","Area","Zone","Item","Fee","Fee paid by","Collect","Rider","Received by","Delivered at","Last update"],
+      ...rows.map(o=>[o.code,STATUSES[o.status]?.label||o.status,o.merchantName,o.ref,o.createdAt&&clock(o.createdAt),o.sender?.name,o.sender?.phone,o.receiver?.name,o.receiver?.phone,o.receiver?.address,o.receiver?.area,zoneById(o.zoneId)?.name||"",o.item,o.fee,o.feeBy,o.collect,riderById(o.riderId)?.name||"",o.pod?.receivedBy||"",o.pod?.at?clock(o.pod.at):"",o.updatedAt&&clock(o.updatedAt)])]);
+  });
+
+  /* ---- Top bar ---- */
+  $("#lookupForm").addEventListener("submit", e=>{ e.preventDefault(); const v=normCode($("#lookupInput").value); if(!v) return; const o=orders().find(x=>x.code===v); if(o){ openOrder(o.id); $("#lookupInput").value=""; } else toast(`No order with code ${v}.`); });
+  $("#coName").addEventListener("click", ()=>{
+    openDlg(`<form id="coForm" style="display:grid;gap:12px"><div class="hd"><h2>Company name</h2></div><label>Shown to customers, vendors and riders<input id="coInput" value="${esc(company())}" placeholder="e.g. Swift Dispatch Lagos"></label><div class="formacts"><button type="button" class="btn" data-close>Cancel</button><button class="btn primary" type="submit">Save</button></div></form>`);
+    $("#coForm").addEventListener("submit", async ev=>{ ev.preventDefault(); try{ await setDoc("settings","company",{name:$("#coInput").value.trim()}); dlg.close(); }catch(err){} });
+  });
+  $("#linksBtn").addEventListener("click", ()=>{
+    const L=[["Customers: book and track", SITE],["Vendors: accounts, bulk orders, pickups", SITE+"?merchant=1"],["Riders: run sheet and proof of delivery", SITE+"?rider=1"],["Staff: this dispatch board", SITE+"?staff=1"]];
+    openDlg(`<div class="hd"><h2>Links to share</h2><button class="btn sm" data-close>Close</button></div>${L.map(([t,u])=>`<div style="display:grid;gap:4px"><span class="eyebrow">${t}</span><div class="inline"><input readonly value="${esc(u)}" class="mono" style="font-size:13px"><button class="btn sm" type="button" data-copylink="${esc(u)}">Copy</button></div></div>`).join("")}`);
+  });
+  dlg.addEventListener("click", e=>{ const b=e.target.closest("[data-copylink]"); if(b) copy(b.dataset.copylink); });
+
+  init();
 }
 
-setInterval(()=>{ if(currentTab()==="riders") renderRiders(orders()); }, 60000);
-if(BOOT.mode==="staff"){ document.querySelectorAll('a[href="SITEURL"]').forEach(a=>a.href=SITE); }
-if(BOOT.mode!=="staff" && BOOT.track){ $("#ctCode").value=BOOT.track; setCMode("track"); renderCustTrack(); }
-showTab(); render(); Store.init();
+/* ================= VENDOR PORTAL ================= */
+function startMerchant(){
+  let token = store.get("dd-mtoken"), D=null, range="7", info={zones:[],company:""};
+  const TABS=["report","new","bulk","pickups"];
+  const tab = () => { const h=(location.hash||"#report").slice(1); return TABS.includes(h)?h:"report"; };
+  function showTab(){ if(!D) return; const t=tab(); $$("[data-mview]").forEach(s=>s.hidden=s.dataset.mview!==t); $$("[data-mtab]").forEach(a=>a.dataset.mtab===t?a.setAttribute("aria-current","page"):a.removeAttribute("aria-current")); }
+  window.addEventListener("hashchange", showTab);
+  const today = toLocalDate(Date.now());
+  $("#bDate").value=today; $("#bDate").min=today; $("#pkDate").value=today; $("#pkDate").min=today;
+
+  api("publicInfo").then(i=>{ info=i; fillAreas("#pubAreas", i.zones||[]); $$(".mCoName").forEach(el=>el.textContent = i.company ? `${i.company} for vendors` : "Vendor accounts"); }).catch(()=>{});
+
+  function signedOut(){ D=null; $("#mAuth").hidden=false; $("#mBar").hidden=true; $$("[data-mview]").forEach(s=>s.hidden=true); }
+  async function load(){
+    try{ D = await api("merchantData", token); }
+    catch(e){ toast(errText(e)); token=""; store.set("dd-mtoken",""); signedOut(); return; }
+    info.zones=D.zones; fillAreas("#pubAreas", D.zones);
+    $("#mAuth").hidden=true; $("#mBar").hidden=false;
+    $("#mBiz").textContent=D.merchant.business; $("#mCo").textContent = D.company ? `Vendor account with ${D.company}` : "Vendor account";
+    document.title = `${D.merchant.business} · Vendor`;
+    if(!$("#bAddr").value) $("#bAddr").value=D.merchant.address; if(!$("#pkAddr").value) $("#pkAddr").value=D.merchant.address;
+    showTab(); renderReport(); renderPickups();
+  }
+  $$("[data-auth]").forEach(b=>b.addEventListener("click",()=>{ $$("[data-auth]").forEach(x=>x.setAttribute("aria-pressed", x===b)); $("#mLoginForm").hidden=b.dataset.auth!=="login"; $("#mSignupForm").hidden=b.dataset.auth!=="signup"; }));
+  $("#mLoginForm").addEventListener("submit", async e=>{ e.preventDefault();
+    try{ const r=await api("merchantLogin", $("#mlPhone").value, $("#mlPass").value); token=r.token; store.set("dd-mtoken",token); e.target.reset(); load(); }catch(err){ toast(errText(err)); } });
+  $("#mSignupForm").addEventListener("submit", async e=>{ e.preventDefault();
+    try{ const r=await api("merchantSignup", {business:$("#msBiz").value, contact:$("#msContact").value, phone:$("#msPhone").value, email:$("#msEmail").value, address:$("#msAddr").value, area:$("#msArea").value, password:$("#msPass").value});
+      token=r.token; store.set("dd-mtoken",token); e.target.reset(); toast("Account created. Welcome!"); location.hash="#bulk"; load(); }catch(err){ toast(errText(err)); } });
+  $("#mLogout").addEventListener("click", ()=>{ token=""; store.set("dd-mtoken",""); signedOut(); });
+  $("#mRefresh").addEventListener("click", ()=>load());
+
+  /* ---- Report ---- */
+  const inRange = o => range==="all" ? true : range==="today" ? isToday(o.createdAt) : (Date.now()-new Date(o.createdAt))/86400000 <= Number(range);
+  const mDue = o => (Number(o.collect)||0) + (o.feeBy==="receiver"?Number(o.fee)||0:0);
+  function mFiltered(){
+    const st=$("#mStatus").value, q=$("#mq").value.trim().toLowerCase();
+    return D.orders.filter(o=>inRange(o) && (!st || (st==="pending" ? PENDING.includes(o.status) : st==="problem" ? ["failed","returned"].includes(o.status) : o.status===st))
+      && (!q || [o.code,o.ref,o.receiver?.name,o.receiver?.phone,o.receiver?.area,o.item].join(" ").toLowerCase().includes(q)))
+      .sort((a,b)=>(b.createdAt||"").localeCompare(a.createdAt||""));
+  }
+  function renderReport(){
+    if(!D) return;
+    const sv=$("#mStatus").value;
+    $("#mStatus").innerHTML=`<option value="">All statuses</option><option value="pending">Pending (not yet delivered)</option><option value="delivered">Delivered</option><option value="problem">Failed or returned</option>`+["booked","pickup","at_hub","out","cancelled"].map(k=>`<option value="${k}">${STATUSES[k].label}</option>`).join("");
+    $("#mStatus").value=sv;
+    const base=D.orders.filter(inRange), del=base.filter(o=>o.status==="delivered");
+    $("#mKpis").innerHTML=[[base.length,"orders"],[del.length,"delivered"],[base.filter(o=>PENDING.includes(o.status)).length,"pending"],[base.filter(o=>["failed","returned"].includes(o.status)).length,"failed or returned"],[naira(del.reduce((s,o)=>s+(Number(o.collect)||0),0)),"collected for you"],[naira(base.filter(o=>o.status!=="cancelled"&&o.feeBy!=="receiver").reduce((s,o)=>s+(Number(o.fee)||0),0)),"delivery fees you owe"]]
+      .map(([b,s])=>`<div class="kpi"><b>${b}</b><span>${s}</span></div>`).join("");
+    const rows=mFiltered();
+    $("#mRows").innerHTML = rows.length ? rows.slice(0,500).map(o=>`<tr data-mopen="${o.code}"><td class="mono">${esc(o.code)}</td><td>${esc(o.ref||"")}</td><td>${chip(o.status)}</td><td>${esc(o.receiver?.name)}<br><span class="muted">${esc(o.receiver?.phone)}</span></td><td>${esc(o.receiver?.area)}</td><td class="num">${o.fee==null?"–":(Number(o.fee)||0).toLocaleString("en-NG")}</td><td class="num">${(Number(o.collect)||0).toLocaleString("en-NG")}</td><td>${esc(o.pod?.receivedBy||"")}</td><td class="muted">${ago(o.updatedAt)}</td></tr>`).join("")
+      : `<tr><td colspan="9" class="muted" style="cursor:default">${D.orders.length?"No orders match.":"No orders yet. Create one on New order or Bulk upload."}</td></tr>`;
+  }
+  $("#mRange").addEventListener("click", e=>{ const b=e.target.closest("button"); if(!b) return; range=b.dataset.r; $$("#mRange button").forEach(x=>x.setAttribute("aria-pressed", x===b)); renderReport(); });
+  ["#mq","#mStatus"].forEach(s=>$(s).addEventListener("input", renderReport));
+  $("#mCsv").addEventListener("click", ()=>{ if(!D) return; const rows=mFiltered();
+    downloadCSV(`${D.merchant.business.replace(/\W+/g,"-")}-orders-${dayKey(Date.now())}.csv`, [["Tracking code","Your ref","Status","Booked","Receiver","Receiver phone","Address","Area","Item","Delivery fee","Fee paid by","Collect","Received by","Delivered at","Last update"],
+      ...rows.map(o=>[o.code,o.ref,STATUSES[o.status]?.label||o.status,clock(o.createdAt),o.receiver?.name,o.receiver?.phone,o.receiver?.address,o.receiver?.area,o.item,o.fee,o.feeBy,o.collect,o.pod?.receivedBy||"",o.pod?.at?clock(o.pod.at):"",clock(o.updatedAt)])]); });
+  $("#mCopySum").addEventListener("click", ()=>{ if(!D) return; const rows=mFiltered(), c=k=>rows.filter(o=>o.status===k).length;
+    const pend=rows.filter(o=>PENDING.includes(o.status));
+    copy(`${D.merchant.business}: delivery report (${$("#mRange [aria-pressed=true]").textContent})\nTotal orders: ${rows.length}\nDelivered: ${c("delivered")}\nPending: ${pend.length}\nFailed/returned: ${c("failed")+c("returned")}\n` + (pend.length?`\nPending orders:\n`+pend.slice(0,40).map(o=>`${o.code}${o.ref?" ("+o.ref+")":""} · ${o.receiver?.name} · ${STATUSES[o.status].label}`).join("\n"):"")); });
+  document.addEventListener("click", async e=>{
+    const tr=e.target.closest("[data-mopen]"); if(tr){ const o=D.orders.find(x=>x.code===tr.dataset.mopen); if(!o) return;
+      openDlg(`<div class="hd"><h2 class="mono">${esc(o.code)}</h2>${chip(o.status)}<button class="btn sm" data-close>Close</button></div>
+        <dl class="kv">${o.ref?`<dt>Your ref</dt><dd>${esc(o.ref)}</dd>`:""}<dt>To</dt><dd>${esc(o.receiver?.name)} · ${esc(o.receiver?.phone)}<br>${esc(o.receiver?.address)}, ${esc(o.receiver?.area)}</dd>
+        <dt>Package</dt><dd>${esc(o.item)}</dd><dt>Fee</dt><dd>${o.fee==null?"To be confirmed":naira(o.fee)}${o.feeBy==="receiver"?" · receiver pays":""}</dd>${o.collect>0?`<dt>Collect</dt><dd>${naira(o.collect)}</dd>`:""}
+        ${o.rider?`<dt>Rider</dt><dd>${esc(o.rider.name)} · ${esc(o.rider.phone)}</dd>`:""}</dl>${podHTML(o.pod)}<div><span class="eyebrow">History</span>${timelineHTML(o.history)}</div>
+        <div class="formacts" style="justify-content:space-between">${o.status==="booked"?`<button class="btn sm danger" data-mcancel="${o.code}">Cancel order</button>`:"<span></span>"}<button class="btn primary" data-mcopy="${o.code}">Copy tracking link</button></div>`); return; }
+    const cp=e.target.closest("[data-mcopy]"); if(cp){ const o=D.orders.find(x=>x.code===cp.dataset.mcopy); copy(`Your order from ${D.merchant.business} is on its way soon.\nTracking code: ${o.code}\nTrack it here: ${SITE}?track=${o.code}`); return; }
+    const cn=e.target.closest("[data-mcancel]"); if(cn){ if(!cn.dataset.sure){ cn.dataset.sure="1"; cn.textContent="Tap again to cancel"; return; } try{ await api("merchantCancelOrder", token, cn.dataset.mcancel); dlg.close(); toast("Order cancelled"); load(); }catch(err){ toast(errText(err)); } }
+  });
+
+  /* ---- New order ---- */
+  $("#moArea").addEventListener("input", ()=>feeHint($("#moFeeEst"), $("#moArea").value, info.zones||[]));
+  $("#mOrderForm").addEventListener("submit", async e=>{ e.preventDefault(); $("#moSubmit").disabled=true;
+    try{ const r=await api("merchantCreateOrders", token, [{receiverName:$("#moName").value, receiverPhone:$("#moPhone").value, receiverAddress:$("#moAddr").value, area:$("#moArea").value, item:$("#moItem").value, size:$("#moSize").value, feeBy:$("#moFeeBy").value, collect:$("#moCod").value, notes:$("#moNotes").value, ref:$("#moRef").value}], null);
+      if(r.errors.length) throw new Error(r.errors[0].error);
+      const c=r.created[0]; e.target.reset(); $("#moFeeEst").textContent="";
+      $("#moResult").innerHTML=`<div class="result ok"><b>Order created: <span class="mono">${esc(c.code)}</span></b><span>${c.fee==null?"We'll confirm the delivery fee.":"Delivery fee: "+naira(c.fee)}. Book a pickup on the Pickups tab, or drop it at our office.</span></div>`;
+      load(); }catch(err){ toast(errText(err)); } finally{ $("#moSubmit").disabled=false; } });
+
+  /* ---- Bulk upload ---- */
+  const FIELDS = [["receiverName","Receiver name",["receivername","name","customername","customer","recipient","recipientname","fullname"]],
+    ["receiverPhone","Receiver phone",["receiverphone","phone","phonenumber","customerphone","recipientphone","mobile","tel","telephone"]],
+    ["receiverAddress","Delivery address",["deliveryaddress","address","receiveraddress","customeraddress","street"]],
+    ["area","Area",["area","lga","city","location","town","zone","state"]],
+    ["item","Item",["item","items","description","product","products","package","whatsinside"]],
+    ["collect","Amount to collect",["amounttocollect","collect","cod","cashondelivery","amount","price","total"]],
+    ["feeBy","Fee paid by",["feepaidby","feeby","whopays","deliveryfeepaidby"]],
+    ["size","Size",["size","packagesize"]],
+    ["ref","Your ref",["yourref","ref","reference","orderid","ordernumber","orderno","order"]],
+    ["notes","Notes",["notes","note","instructions","comment","comments"]]];
+  const REQ=["receiverName","receiverPhone","receiverAddress","area","item"];
+  let parsed=[];
+  $("#bTemplate").addEventListener("click", ()=>downloadCSV("bulk-orders-template.csv", [["receiver_name","receiver_phone","delivery_address","area","item","amount_to_collect","fee_paid_by","your_ref","notes"],["Chioma Eze","08031234567","12 Admiralty Way","Lekki","2 pairs of shoes","25000","sender","#1043","Call before arriving"],["Tunde Bello","08127654321","4 Allen Avenue","Ikeja","Skincare set","0","receiver","#1044",""]]));
+  $("#bFile").addEventListener("change", async ()=>{ const f=$("#bFile").files[0]; if(!f) return; $("#bPaste").value = await f.text(); $("#bFile").value=""; check(); });
+  $("#bCheck").addEventListener("click", check);
+  $("#bWithPickup").addEventListener("change", ()=>$("#bPickupFields").hidden=!$("#bWithPickup").checked);
+  function check(){
+    const rows=parseCSV($("#bPaste").value);
+    if(rows.length<2){ $("#bPreview").innerHTML=`<div class="result warn">Add a heading row and at least one order. Download the template to see the columns.</div>`; parsed=[]; return; }
+    const head=rows[0].map(h=>String(h).toLowerCase().replace(/[^a-z]/g,""));
+    const map={}; FIELDS.forEach(([k,,names])=>{ const i=head.findIndex(h=>names.includes(h)); if(i>=0) map[k]=i; });
+    const missing=REQ.filter(k=>map[k]==null);
+    if(missing.length){ $("#bPreview").innerHTML=`<div class="result warn">Couldn't find these columns: <b>${missing.map(k=>FIELDS.find(f=>f[0]===k)[1]).join(", ")}</b>. Rename your headings to match the template.</div>`; parsed=[]; return; }
+    parsed = rows.slice(1).map((r,i)=>{ const o={row:i+2}; FIELDS.forEach(([k])=>{ if(map[k]!=null) o[k]=String(r[map[k]]??"").trim(); });
+      o.problems=REQ.filter(k=>!o[k]).map(k=>FIELDS.find(f=>f[0]===k)[1]+" missing");
+      if(o.receiverPhone && o.receiverPhone.replace(/\D/g,"").length<10) o.problems.push("phone looks too short");
+      const z=zoneFor(o.area, info.zones||[]); o.zone=z; return o; });
+    if(parsed.length>500){ $("#bPreview").innerHTML=`<div class="result warn">That's ${parsed.length} orders. Upload at most 500 at a time.</div>`; parsed=[]; return; }
+    const bad=parsed.filter(o=>o.problems.length), good=parsed.length-bad.length, fees=parsed.filter(o=>!o.problems.length&&o.zone).reduce((s,o)=>s+Number(o.zone.fee||0),0);
+    $("#bPreview").innerHTML=`<div class="panel">
+      <div class="toolrow" style="margin:0"><h2 class="grow">${good} order${good==1?"":"s"} ready${bad.length?`, ${bad.length} need fixing`:""}</h2>
+        <button class="btn primary" id="bCreate" ${good?"":"disabled"}>Create ${good} order${good==1?"":"s"}</button></div>
+      <p class="hint" style="margin:0">${fees?`Estimated delivery fees: ${naira(fees)}. `:""}${bad.length?"Rows with problems are skipped. Fix them in your sheet and upload them again.":""}</p>
+      <div class="tablewrap"><table><thead><tr><th>Row</th><th>Receiver</th><th>Phone</th><th>Address</th><th>Area / zone</th><th>Item</th><th class="num">Collect</th><th>Ref</th><th>Check</th></tr></thead><tbody>
+      ${parsed.map(o=>`<tr class="${o.problems.length?"bad":""}"><td class="num">${o.row}</td><td>${esc(o.receiverName)}</td><td>${esc(o.receiverPhone)}</td><td>${esc(o.receiverAddress)}</td><td>${esc(o.area)}${o.zone?`<br><span class="muted">${esc(o.zone.name)} · ${naira(o.zone.fee)}</span>`:o.area?'<br><span class="muted">fee to confirm</span>':""}</td><td>${esc(o.item)}</td><td class="num">${esc(o.collect||"")}</td><td>${esc(o.ref||"")}</td><td>${o.problems.length?`<span class="err">${esc(o.problems.join(", "))}</span>`:"OK"}</td></tr>`).join("")}
+      </tbody></table></div></div>`;
+    $("#bCreate")?.addEventListener("click", create);
+  }
+  async function create(){
+    const good=parsed.filter(o=>!o.problems.length).map(({problems,zone,...o})=>o);
+    const pk=$("#bWithPickup").checked ? {date:$("#bDate").value, window:$("#bWindow").value, address:$("#bAddr").value} : null;
+    if(pk && !pk.date) return toast("Choose a pickup date.");
+    $("#bCreate").disabled=true; $("#bCreate").textContent=`Creating ${good.length} orders…`;
+    try{
+      const r=await api("merchantCreateOrders", token, good, pk);
+      $("#bPreview").innerHTML=`<div class="result ok"><b>${r.created.length} orders created.</b>${r.pickup?`<span>Pickup booked for ${esc(r.pickup.date)}, ${esc(r.pickup.window)} (${r.pickup.count} packages).</span>`:"<span>Bring the packages to our office, or book a pickup on the Pickups tab.</span>"}
+        ${r.errors.length?`<span class="err">${r.errors.length} rows were not created: ${r.errors.slice(0,10).map(x=>`row ${x.row} (${esc(x.error)})`).join("; ")}</span>`:""}
+        <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn primary" id="bCodes">Download tracking codes</button><a class="btn" href="#report">See my orders</a></div></div>`;
+      $("#bCodes").addEventListener("click", ()=>downloadCSV(`tracking-codes-${dayKey(Date.now())}.csv`, [["Row","Your ref","Receiver","Tracking code","Delivery fee","Tracking link"], ...r.created.map(c=>[c.row,c.ref,c.receiver,c.code,c.fee??"to confirm",`${SITE}?track=${c.code}`])]));
+      $("#bPaste").value=""; parsed=[]; load();
+    }catch(err){ toast(errText(err)); $("#bCreate").disabled=false; $("#bCreate").textContent="Try again"; }
+  }
+
+  /* ---- Pickups ---- */
+  function renderPickups(){
+    if(!D) return;
+    const scheduled=new Set(D.pickups.filter(p=>p.status!=="cancelled").flatMap(p=>p.codes||[]));
+    const ready=D.orders.filter(o=>o.status==="booked" && !scheduled.has(o.code));
+    $("#pkOrders").innerHTML = ready.length ? ready.map(o=>`<label class="checks" style="display:flex;justify-content:space-between;gap:8px"><span><input type="checkbox" value="${o.code}" checked> <span class="mono">${esc(o.code)}</span> ${esc(o.receiver?.name)}</span><span class="muted">${esc(o.receiver?.area)}</span></label>`).join("") : `<span class="hint">All your orders already have a pickup booked or have been collected.</span>`;
+    const ps=D.pickups.slice().sort((a,b)=>(b.createdAt||"").localeCompare(a.createdAt||""));
+    const lbl={requested:["Waiting for a rider","warn"],assigned:["Rider assigned","info"],collected:["Collected","ok"],cancelled:["Cancelled",""]};
+    $("#pkList").innerHTML = ps.length ? ps.map(p=>`<div class="task" style="--stripe:${STRIPE[lbl[p.status]?.[1]||""]}"><div class="row" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><h3>${esc(p.date)} · ${esc(p.window)}</h3><span class="chip ${lbl[p.status]?.[1]||""}">${lbl[p.status]?.[0]||esc(p.status)}</span></div>
+      <div class="meta">${p.count} package${p.count==1?"":"s"} · ${esc(p.address)}</div>${p.rider?`<div class="meta">Rider: <b>${esc(p.rider.name)}</b> · ${esc(p.rider.phone)}</div>`:""}</div>`).join("") : `<span class="hint">No pickups booked yet.</span>`;
+  }
+  $("#pkAll").addEventListener("click", ()=>{ const boxes=$$("#pkOrders input"), all=boxes.every(b=>b.checked); boxes.forEach(b=>b.checked=!all); });
+  $("#pkForm").addEventListener("submit", async e=>{ e.preventDefault();
+    const codes=$$("#pkOrders input:checked").map(i=>i.value);
+    if(!codes.length) return toast("Select the orders the rider should collect.");
+    try{ const r=await api("merchantSchedulePickup", token, {date:$("#pkDate").value, window:$("#pkWindow").value, address:$("#pkAddr").value, notes:$("#pkNotes").value, codes});
+      toast(`Pickup booked for ${r.date}, ${r.window}`); $("#pkNotes").value=""; load(); }catch(err){ toast(errText(err)); } });
+
+  if(token) load(); else signedOut();
+}
+
+/* ================= RIDER ================= */
+function startRider(){
+  let token=store.get("dd-rtoken"), D=null;
+  function signedOut(){ D=null; $("#rAuth").hidden=false; $("#rRun").hidden=true; $("#rBar").hidden=true; }
+  async function load(quiet){
+    try{ D=await api("riderData", token); }
+    catch(e){ if(!quiet) toast(errText(e)); if(/sign in/i.test(errText(e))){ token=""; store.set("dd-rtoken",""); signedOut(); } return; }
+    $("#rAuth").hidden=true; $("#rRun").hidden=false; $("#rBar").hidden=false;
+    $("#rName").textContent=D.rider.name; $("#rAvatar").textContent=initials(D.rider.name); $("#rCo").textContent=D.company?`Rider · ${D.company}`:"My run";
+    $("#rLocNow").textContent = D.rider.location ? `Last location you shared: ${D.rider.location}` : "";
+    render();
+  }
+  const due = o => (Number(o.collect)||0) + (o.feeBy==="receiver"?Number(o.fee)||0:0);
+  function render(){
+    const pk=D.pickups.filter(p=>p.status==="assigned"), pu=D.orders.filter(o=>o.status==="pickup" && !o.pickupId), out=D.orders.filter(o=>o.status==="out"), wait=D.orders.filter(o=>o.status==="at_hub");
+    const done=D.orders.filter(o=>["delivered","failed","returned"].includes(o.status)), cash=done.filter(o=>o.status==="delivered"&&!o.remitted).reduce((s,o)=>s+due(o),0);
+    const sec=(t,n,html)=>`<div class="sectionh"><h2>${t}</h2><span class="n">${n}</span></div><div class="tasks">${html||'<span class="hint">Nothing here.</span>'}</div>`;
+    $("#rTasks").innerHTML = `<div class="kpis" style="margin-top:12px"><div class="kpi"><b>${out.length}</b><span>to deliver</span></div><div class="kpi"><b>${pk.length+pu.length}</b><span>to pick up</span></div><div class="kpi"><b>${done.filter(o=>o.status==="delivered").length}</b><span>delivered today</span></div><div class="kpi"><b>${naira(cash)}</b><span>cash to hand in</span></div></div>`
+      + sec("Deliveries", out.length, out.map(o=>`<div class="task" style="--stripe:var(--info)"><div class="row" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><span class="mono">${esc(o.code)}</span>${o.merchantName?`<span class="chip">${esc(o.merchantName)}</span>`:""}</div>
+          <h3>${esc(o.receiver?.name)} · ${esc(o.receiver?.phone)}</h3><div class="addr">${esc(o.receiver?.address)}, ${esc(o.receiver?.area)}</div>
+          <div class="meta">${esc(o.item)}${due(o)>0?` · <b style="color:var(--ink)">Collect ${naira(due(o))}</b>`:" · Prepaid"}${o.notes?`<br>${esc(o.notes)}`:""}</div>
+          <div class="acts"><button class="btn primary" data-ract="delivered" data-id="${o.code}">Delivered</button><button class="btn" data-ract="failed" data-id="${o.code}">Couldn't deliver</button></div></div>`).join(""))
+      + sec("Vendor pickups", pk.length, pk.map(p=>`<div class="task" style="--stripe:var(--accent)"><h3>${esc(p.merchantName)} · ${p.count} package${p.count==1?"":"s"}</h3><div class="addr">${esc(p.address)}</div><div class="meta">${esc(p.date)} · ${esc(p.window)} · ${esc(p.phone)}${p.notes?`<br>${esc(p.notes)}`:""}</div>
+          <div class="acts"><button class="btn primary" data-ract="collectPickup" data-id="${p.id}" data-count="${p.count}">Collected</button></div></div>`).join(""))
+      + sec("Customer pickups", pu.length, pu.map(o=>`<div class="task" style="--stripe:var(--warn)"><div class="mono">${esc(o.code)}</div><h3>${esc(o.sender?.name)} · ${esc(o.sender?.phone)}</h3><div class="addr">${esc(o.sender?.address)}</div><div class="meta">${esc(o.item)}${o.notes?`<br>${esc(o.notes)}`:""}</div>
+          <div class="acts"><button class="btn primary" data-ract="collected" data-id="${o.code}">Collected</button></div></div>`).join(""))
+      + (wait.length?sec("Waiting for you at the office", wait.length, wait.map(o=>`<div class="task"><span class="mono">${esc(o.code)}</span> ${esc(o.receiver?.name)} · ${esc(o.receiver?.area)}</div>`).join("")):"")
+      + sec("Done today", done.length, done.map(o=>`<div class="task" style="--stripe:${o.status==="delivered"?"var(--ok)":"var(--bad)"}"><div><span class="mono">${esc(o.code)}</span> ${chip(o.status)}</div><div class="meta">${esc(o.receiver?.name)} · ${esc(o.receiver?.area)}${o.pod?` · received by ${esc(o.pod.receivedBy)}`:""}</div></div>`).join(""));
+  }
+  document.addEventListener("click", async e=>{
+    const b=e.target.closest("[data-ract]"); if(!b||!D) return;
+    const act=b.dataset.ract, id=b.dataset.id;
+    try{
+      if(act==="delivered"){ const o=D.orders.find(x=>x.code===id); const pod=await askPod(o); if(!pod) return;
+        try{ await api("riderAction", token, {type:"order", id, action:"delivered", pod}); dlg.close(); toast("Delivered. Well done!"); }catch(err){ dlg.close(); throw err; } }
+      if(act==="failed"){ openDlg(`<form id="failForm" style="display:grid;gap:12px"><div class="hd"><h2>Couldn't deliver</h2><button type="button" class="btn sm" data-close>Cancel</button></div>
+          <label>What happened?<select id="failWhy"><option>Receiver not answering calls</option><option>Receiver not at address</option><option>Receiver refused the package</option><option>Wrong address</option><option>Receiver asked to reschedule</option><option>Other</option></select></label><label>Note<input id="failNote"></label><div class="formacts"><button class="btn primary" type="submit">Save</button></div></form>`);
+        $("#failForm").addEventListener("submit", async ev=>{ ev.preventDefault(); try{ await api("riderAction", token, {type:"order", id, action:"failed", note:[$("#failWhy").value,$("#failNote").value.trim()].filter(Boolean).join(": ")}); dlg.close(); toast("Saved. Bring it back to the office."); load(true); }catch(err){ toast(errText(err)); } }); return; }
+      if(act==="collected"){ b.disabled=true; await api("riderAction", token, {type:"order", id, action:"collected"}); toast("Marked collected"); }
+      if(act==="collectPickup"){ b.disabled=true; await api("riderAction", token, {type:"pickup", id, action:"collected", count:b.dataset.count}); toast("Vendor pickup collected"); }
+      load(true);
+    }catch(err){ toast(errText(err)); b.disabled=false; }
+  });
+  $("#rLoginForm").addEventListener("submit", async e=>{ e.preventDefault();
+    try{ const r=await api("riderLogin", $("#rlPhone").value, $("#rlPin").value); token=r.token; store.set("dd-rtoken",token); e.target.reset(); load(); }catch(err){ toast(errText(err)); } });
+  $("#rLogout").addEventListener("click", ()=>{ token=""; store.set("dd-rtoken",""); signedOut(); });
+  $("#rRefresh").addEventListener("click", ()=>load());
+  $("#rLocForm").addEventListener("submit", async e=>{ e.preventDefault(); const v=$("#rLoc").value.trim(); if(!v) return;
+    try{ await api("riderLocation", token, v); $("#rLoc").value=""; toast("Location shared with the office"); load(true); }catch(err){ toast(errText(err)); } });
+  setInterval(()=>{ if(D && !dlg.open) load(true); }, 30000);
+  if(token) load(); else signedOut();
+}
+
+/* ================= CUSTOMER ================= */
+function startCustomer(){
+  let cArrive="pickup", cMode="book", zones=[];
+  api("publicInfo").then(i=>{ zones=i.zones||[]; fillAreas("#pubAreas", zones); if(i.company){ $("#custCo").textContent=`Send a package with ${i.company}`; document.title=`${i.company} · Book and track a delivery`; } }).catch(e=>toast(errText(e)));
+  function setCMode(m){ cMode=m; $$("[data-cmode]").forEach(b=>b.setAttribute("aria-pressed", b.dataset.cmode===m));
+    const done=!!$("#custDone").dataset.code; $("#custForm").hidden = m!=="book" || done; $("#custDone").hidden = m!=="book" || !done; $("#custTrackForm").hidden = m!=="track"; }
+  $$("[data-cmode]").forEach(b=>b.addEventListener("click",()=>setCMode(b.dataset.cmode)));
+  $("#cArriveSeg").addEventListener("click", e=>{ const b=e.target.closest("button"); if(!b) return; cArrive=b.dataset.v; $$("#cArriveSeg button").forEach(x=>x.setAttribute("aria-pressed", x===b)); $("#cAddrWrap").hidden = cArrive!=="pickup"; });
+  $("#crArea").addEventListener("input", ()=>{ const z=feeHint($("#cFeeEst"), $("#crArea").value, zones); $("#cFeeNote").textContent = z ? `Delivery to ${z.name} costs ${naira(z.fee)}. We'll confirm pickup with you on WhatsApp.` : "We'll confirm the delivery fee with you on WhatsApp before pickup."; });
+  $("#custForm").addEventListener("submit", async e=>{
+    e.preventDefault();
+    if(cArrive==="pickup" && !$("#cAddr").value.trim()){ toast("Add your pickup address, or choose to bring it to our office."); return; }
+    const f={arrive:cArrive, senderName:$("#cName").value, senderPhone:$("#cPhone").value, senderAddress:$("#cAddr").value, receiverName:$("#crName").value, receiverPhone:$("#crPhone").value, receiverAddress:$("#crAddr").value, area:$("#crArea").value, item:$("#cItem").value, size:$("#cSize").value, feeBy:$("#cFeeBy").value, collect:$("#cCod").value, due:$("#cDue").value, notes:$("#cNotes").value};
+    $("#cSubmit").disabled=true; $("#cSubmit").textContent="Booking…";
+    try{ const r=await api("bookOrder", f); e.target.reset(); $("#cFeeEst").textContent="";
+      $("#custDone").dataset.code=r.code; $("#custCode").textContent=r.code;
+      $("#custDoneMsg").textContent = `Keep this tracking code. ${r.fee!=null?`Delivery fee: ${naira(r.fee)}. `:""}We'll message you on WhatsApp to confirm ${cArrive==="pickup"?"pickup":"when to bring it in"}.`;
+      setCMode("book"); window.scrollTo(0,0); }
+    catch(err){ toast(errText(err)); } finally{ $("#cSubmit").disabled=false; $("#cSubmit").textContent="Book delivery"; }
+  });
+  $("#custCopy").addEventListener("click", ()=>copy($("#custCode").textContent));
+  $("#custAgain").addEventListener("click", ()=>{ delete $("#custDone").dataset.code; setCMode("book"); });
+  $("#custTrackNow").addEventListener("click", ()=>{ $("#ctCode").value=$("#custCode").textContent; setCMode("track"); track(); });
+  $("#custTrackForm").addEventListener("submit", e=>{ e.preventDefault(); track(); });
+  const CSTEPS=[["Booked",["booked","pickup"]],["At our office",["at_hub"]],["On the way",["out"]],["Delivered",["delivered"]]];
+  async function track(){
+    const box=$("#ctResult"), v=normCode($("#ctCode").value); if(!v){ box.innerHTML=""; return; }
+    box.innerHTML=`<p class="hint">Looking it up…</p>`;
+    let o=null; try{ o=await api("trackOrder", v); }catch(err){ box.innerHTML=`<p style="margin:0">${esc(errText(err))}</p>`; return; }
+    if(!o){ box.innerHTML=`<p style="margin:0">We couldn't find <b class="mono">${esc(v)}</b>. Check the code on your booking message and try again.</p>`; return; }
+    const failed=["failed","returned","cancelled"].includes(o.status), idx=CSTEPS.findIndex(([,ss])=>ss.includes(o.status)), reach=failed?2:idx;
+    const head={booked:"We've received your booking.",pickup:"A rider is on the way to pick up your package.",at_hub:"Your package is at our office.",out:"Your package is on the way.",delivered:"Your package has been delivered.",failed:"We couldn't deliver your package yet. We'll contact you.",returned:"Your package was returned to the sender.",cancelled:"This order was cancelled."}[o.status]||"";
+    box.innerHTML=`<div style="display:grid;gap:12px">
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span class="bigcode" style="font-size:22px">${esc(o.code)}</span>${chip(o.status)}</div>
+      <p style="margin:0;font-weight:600">${head}</p>
+      <div class="steps ${failed?"bad":""}">${CSTEPS.map(([l],i)=>`<div class="${i<=reach?"on":""}"><i></i>${l}</div>`).join("")}</div>
+      <dl class="kv">${o.vendor?`<dt>From</dt><dd>${esc(o.vendor)}</dd>`:""}<dt>Going to</dt><dd>${esc(o.receiver?.name)}, ${esc(o.receiver?.area)}</dd><dt>Package</dt><dd>${esc(o.item)}</dd>
+        <dt>Delivery fee</dt><dd>${o.fee==null?"We'll confirm it with you":naira(o.fee)+(o.feeBy==="receiver"?", paid by receiver":"")}</dd>
+        ${o.rider?`<dt>Your rider</dt><dd>${esc(o.rider.name)} · ${esc(o.rider.phone)}</dd>`:""}
+        ${o.pod?`<dt>Received by</dt><dd>${esc(o.pod.receivedBy)} · ${clock(o.pod.at)}</dd>`:""}</dl>
+      <div><span class="eyebrow">Updates</span>${timelineHTML(o.history)}</div></div>`;
+  }
+  const t=Q.get("track"); if(t){ $("#ctCode").value=t.replace(/[^A-Za-z0-9-]/g,"").slice(0,12); setCMode("track"); track(); }
+}
+
+({staff:startStaff, merchant:startMerchant, rider:startRider, customer:startCustomer})[MODE]();
 })();
 </script>
 </body>
